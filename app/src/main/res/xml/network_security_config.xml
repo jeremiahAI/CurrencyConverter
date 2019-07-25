@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
+    <!--Allow HTTP requests for Fixer API-->
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">data.fixer.io</domain>
     </domain-config>

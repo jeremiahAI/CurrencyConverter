@@ -4,7 +4,10 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.jeremiahVaris.currencyconverter.realmDb.RealmClient
+import com.jeremiahVaris.currencyconverter.realmDb.models.RealmRates
 import com.jeremiahVaris.currencyconverter.repository.CurrencyInfoRepository
+import com.jeremiahVaris.currencyconverter.rest.fixerIo.client.ApiFixerRestClient
 import com.jeremiahVaris.currencyconverter.rest.fixerIo.event.GetLatestRatesEvent
 import com.jeremiahVaris.currencyconverter.rest.fixerIo.event.GetSupportedCurrenciesEvent
 import kotlinx.android.synthetic.main.activity_main.*
@@ -24,7 +27,8 @@ class MainActivity : AppCompatActivity() {
 
         val testButton: Button = testButton
         testButton.setOnClickListener {
-            repository.getSupportedCurrencies()
+            //            repository.getSupportedCurrencies()
+            ApiFixerRestClient.getLatestRates("NGN,GHS,UGX")
         }
     }
 
@@ -45,7 +49,13 @@ class MainActivity : AppCompatActivity() {
 
     @Subscribe
     fun showResponse(latestRatesEvent: GetLatestRatesEvent) {
-        testResponseTV.text = latestRatesEvent.getResponse()?.toString()
+//        testResponseTV.text = latestRatesEvent.getResponse()?.toString()
+        RealmClient.addRates(latestRatesEvent.getResponse()!!)
+    }
+
+    @Subscribe
+    fun showResponse(latestRatesEvent: RealmRates) {
+        testResponseTV.text = latestRatesEvent.toString()
     }
 
 }

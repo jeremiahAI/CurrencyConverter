@@ -3,6 +3,9 @@ package com.jeremiahVaris.currencyconverter.rest.fixerIo.model
 import com.google.gson.annotations.SerializedName
 import java.util.*
 
+/**
+ * Model for [rates] between base currency and other currencies
+ */
 data class Rates(
     @SerializedName("timestamp")
     val timeStamp: String,
