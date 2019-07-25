@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.jeremiahVaris.currencyconverter.rest.fixerIo.client.ApiFixerRestClient
+import com.jeremiahVaris.currencyconverter.repository.CurrencyInfoRepository
 import com.jeremiahVaris.currencyconverter.rest.fixerIo.event.GetLatestRatesEvent
 import com.jeremiahVaris.currencyconverter.rest.fixerIo.event.GetSupportedCurrenciesEvent
 import kotlinx.android.synthetic.main.activity_main.*
@@ -14,6 +14,7 @@ import org.greenrobot.eventbus.Subscribe
 class MainActivity : AppCompatActivity() {
 
     lateinit var testResponseTV: TextView
+    val repository = CurrencyInfoRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,8 +24,7 @@ class MainActivity : AppCompatActivity() {
 
         val testButton: Button = testButton
         testButton.setOnClickListener {
-            ApiFixerRestClient.getSupportedCurrencies()
-//            ApiFixerRestClient.getLatestRates("NGN")
+            repository.getSupportedCurrencies()
         }
     }
 
