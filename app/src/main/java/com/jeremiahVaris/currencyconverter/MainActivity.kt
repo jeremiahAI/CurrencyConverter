@@ -4,20 +4,15 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.jeremiahVaris.currencyconverter.realmDb.RealmClient
-import com.jeremiahVaris.currencyconverter.realmDb.models.RealmRates
-import com.jeremiahVaris.currencyconverter.repository.CurrencyInfoRepository
-import com.jeremiahVaris.currencyconverter.rest.fixerIo.client.ApiFixerRestClient
-import com.jeremiahVaris.currencyconverter.rest.fixerIo.event.GetLatestRatesEvent
-import com.jeremiahVaris.currencyconverter.rest.fixerIo.event.GetSupportedCurrenciesEvent
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
+import com.jeremiahVaris.currencyconverter.viewmodel.ConverterViewModel
 import kotlinx.android.synthetic.main.activity_main.*
-import org.greenrobot.eventbus.EventBus
-import org.greenrobot.eventbus.Subscribe
 
 class MainActivity : AppCompatActivity() {
 
     lateinit var testResponseTV: TextView
-    val repository = CurrencyInfoRepository()
+    lateinit var viewModel: ConverterViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,37 +20,19 @@ class MainActivity : AppCompatActivity() {
 
         testResponseTV = test_tv
 
+        viewModel = ViewModelProviders.of(this).get(ConverterViewModel::class.java)
+
+        viewModel.rates.observe(this, Observer {
+            testResponseTV.text = it.toString()
+        })
         val testButton: Button = testButton
         testButton.setOnClickListener {
             //            repository.getSupportedCurrencies()
-            ApiFixerRestClient.getLatestRates("NGN,GHS,UGX")
+            viewModel.getLatestRates()
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        EventBus.getDefault().register(this)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        EventBus.getDefault().unregister(this)
-    }
-
-    @Subscribe
-    fun showResponse(currencies: GetSupportedCurrenciesEvent) {
-        testResponseTV.text = currencies.getResponse()?.currencyList.toString()
-    }
-
-    @Subscribe
-    fun showResponse(latestRatesEvent: GetLatestRatesEvent) {
-//        testResponseTV.text = latestRatesEvent.getResponse()?.toString()
-        RealmClient.addRates(latestRatesEvent.getResponse()!!)
-    }
-
-    @Subscribe
-    fun showResponse(latestRatesEvent: RealmRates) {
-        testResponseTV.text = latestRatesEvent.toString()
-    }
 
 }
+
+

@@ -1,6 +1,6 @@
-package com.jeremiahVaris.currencyconverter.rest.fixerIo.event
+package com.jeremiahVaris.currencyconverter.repository.events
 
+import com.jeremiahVaris.currencyconverter.repository.model.Currencies
 import com.jeremiahVaris.currencyconverter.rest.core.base.BaseResponseEvent
-import com.jeremiahVaris.currencyconverter.rest.fixerIo.model.Currencies
 
 class GetSupportedCurrenciesEvent : BaseResponseEvent<Currencies>()

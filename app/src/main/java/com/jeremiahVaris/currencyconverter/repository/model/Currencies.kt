@@ -1,4 +1,4 @@
-package com.jeremiahVaris.currencyconverter.rest.fixerIo.model
+package com.jeremiahVaris.currencyconverter.repository.model
 
 import com.google.gson.annotations.SerializedName
 import java.util.*

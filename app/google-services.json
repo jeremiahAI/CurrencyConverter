@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "230937650271",
+    "firebase_url": "https://varis-currency-converter-5aacf.firebaseio.com",
+    "project_id": "varis-currency-converter",
+    "storage_bucket": "varis-currency-converter.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:230937650271:android:8eb6386c3d3a817e",
+        "android_client_info": {
+          "package_name": "com.jeremiahVaris.currencyconverter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "230937650271-66s9ri4kql2g826ja4cn2oqla6knb6im.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDo7ELU1i0yRD3hXJ_UIZzBbSYZZcateRI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "230937650271-66s9ri4kql2g826ja4cn2oqla6knb6im.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

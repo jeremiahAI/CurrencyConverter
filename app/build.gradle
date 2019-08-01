@@ -13,7 +13,7 @@ android {
     buildToolsVersion "29.0.1"
     defaultConfig {
         applicationId "com.jeremiahVaris.currencyconverter"
-        minSdkVersion 15
+        minSdkVersion 16
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
@@ -51,5 +51,13 @@ dependencies {
     //Gson
     implementation 'com.google.code.gson:gson:2.8.5'
 
+    //Eventbus
     implementation 'org.greenrobot:eventbus:3.0.0'
+
+    //Firebase
+    implementation 'com.google.firebase:firebase-core:17.0.1'
+    implementation 'com.google.firebase:firebase-database:18.0.1'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0'
 }
+
+apply plugin: 'com.google.gms.google-services'

@@ -1,6 +1,7 @@
 package com.jeremiahVaris.currencyconverter.realmDb.models
 
 import io.realm.RealmObject
+import io.realm.annotations.PrimaryKey
 
 /**
  * Realm model for [rates] between base currency and other currencies
@@ -16,6 +17,7 @@ open class RealmRates(
     var baseCurrency: String? = null,
 
 //    @SerializedName("date")
+    @PrimaryKey
     var date: String? = null,
 
 //    @SerializedName("rates")

@@ -1,7 +1,7 @@
 package com.jeremiahVaris.currencyconverter.rest.fixerIo.api
 
-import com.jeremiahVaris.currencyconverter.rest.fixerIo.model.Currencies
-import com.jeremiahVaris.currencyconverter.rest.fixerIo.model.Rates
+import com.jeremiahVaris.currencyconverter.repository.model.Currencies
+import com.jeremiahVaris.currencyconverter.repository.model.Rates
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Path

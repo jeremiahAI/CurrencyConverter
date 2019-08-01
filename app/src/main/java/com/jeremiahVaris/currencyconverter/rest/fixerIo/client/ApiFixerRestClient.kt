@@ -1,13 +1,13 @@
 package com.jeremiahVaris.currencyconverter.rest.fixerIo.client
 
 import com.jeremiahVaris.currencyconverter.BuildConfig
+import com.jeremiahVaris.currencyconverter.repository.events.GetRatesFromFixerApiEvent
+import com.jeremiahVaris.currencyconverter.repository.events.GetSupportedCurrenciesEvent
+import com.jeremiahVaris.currencyconverter.repository.model.Currencies
+import com.jeremiahVaris.currencyconverter.repository.model.Rates
 import com.jeremiahVaris.currencyconverter.rest.core.RestRequest
 import com.jeremiahVaris.currencyconverter.rest.core.base.BaseRestClient
 import com.jeremiahVaris.currencyconverter.rest.fixerIo.api.ApiFixer
-import com.jeremiahVaris.currencyconverter.rest.fixerIo.event.GetLatestRatesEvent
-import com.jeremiahVaris.currencyconverter.rest.fixerIo.event.GetSupportedCurrenciesEvent
-import com.jeremiahVaris.currencyconverter.rest.fixerIo.model.Currencies
-import com.jeremiahVaris.currencyconverter.rest.fixerIo.model.Rates
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
@@ -78,7 +78,31 @@ object ApiFixerRestClient : BaseRestClient() {
 
         val restRequest = RestRequest.Builder<Rates>()
             .call(apiLatestRatesCall)
-            .addBaseResponseEvent(GetLatestRatesEvent())
+            .addBaseResponseEvent(GetRatesFromFixerApiEvent())
+            .shouldUseStickyIntent(true)
+            .build()
+
+        call(restRequest)
+    }
+
+    /**
+     * Invoke [ApiFixer.getHistoricalRates] via [Call] request.
+     * @param date Date in YYYY-MM-DD format
+     * @param currencySymbols Comma separated list of symbols of currencySymbols to be compared with base currency
+     * Response type is [Rates]
+     */
+    fun getHistoricalRates(currencySymbols: String, date: String) {
+        val apiLatestRatesCall = mApiFixer.getHistoricalRates(
+            ACCESS_KEY,
+            date.substring(0, 3), // year
+            date.substring(5, 6), // month
+            date.substring(8, 9), // day
+            currencySymbols
+        )
+
+        val restRequest = RestRequest.Builder<Rates>()
+            .call(apiLatestRatesCall)
+            .addBaseResponseEvent(GetRatesFromFixerApiEvent())
             .shouldUseStickyIntent(true)
             .build()
 
