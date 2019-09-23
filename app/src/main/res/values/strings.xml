@@ -3,4 +3,6 @@
     <string name="currency">Currency</string>
     <string name="converter">Converter</string>
     <string name="currency_ngn">NGN</string>
+    <string name="amount_placeholder">1.00</string>
+    <string name="enable_realtime_conversion">Enable realtime conversion</string>
 </resources>

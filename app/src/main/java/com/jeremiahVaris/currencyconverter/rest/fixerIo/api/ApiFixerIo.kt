@@ -45,10 +45,10 @@ interface ApiFixer {
      */
     @GET("api/{year}-{month}-{day}")
     fun getHistoricalRates(
-        @Query("access_key") ACCESS_KEY: String,
         @Path("year") year: String,
         @Path("month") month: String,
         @Path("day") day: String,
+        @Query("access_key") ACCESS_KEY: String,
         @Query("symbols") currencySymbols: String
     ): Call<Rates>
 

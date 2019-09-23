@@ -30,13 +30,13 @@ class CurrencyInfoRepository {
      */
     fun cacheRatesData(rates: Rates) {
         addRatesToRealmDatabase(rates)
-        addRatesToFirebase(rates)
+        addRatesToFireBase(rates)
     }
 
     /**
      * Caches [Rates] data in FireBase database.
      */
-    private fun addRatesToFirebase(rates: Rates) {
+    private fun addRatesToFireBase(rates: Rates) {
         database.child(rates.date).setValue(rates)
     }
 

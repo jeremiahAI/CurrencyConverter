@@ -93,10 +93,10 @@ object ApiFixerRestClient : BaseRestClient() {
      */
     fun getHistoricalRates(currencySymbols: String, date: String) {
         val apiLatestRatesCall = mApiFixer.getHistoricalRates(
+            date.substring(0, 4), // year
+            date.substring(5, 7), // month
+            date.substring(8, 10), // day
             ACCESS_KEY,
-            date.substring(0, 3), // year
-            date.substring(5, 6), // month
-            date.substring(8, 9), // day
             currencySymbols
         )
 
