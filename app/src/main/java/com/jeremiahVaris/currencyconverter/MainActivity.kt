@@ -16,6 +16,8 @@ import kotlinx.android.synthetic.main.activity_main.*
 class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     private var mCurrencyFlagPairList: ArrayList<CurrencyFlagPair>? = null
     private var mAdapter: CurrencyAdapter? = null
+    private var userDefaultFromCurrencyFlagPair = CurrencyFlagPair("NGA")
+    private var userDefaultToCurrencyFlagPair = CurrencyFlagPair("USD")
 
     private var realtimeConversionIsEnabled: Boolean = false
     private lateinit var testResponseTV: TextView
@@ -35,17 +37,22 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         initList()
 
         setSpinnerAdapters(mCurrencyFlagPairList)
-
-        fromCurrencySpinner.onItemSelectedListener = this
-        toCurrencySpinner.onItemSelectedListener = this
-
-
-
-
-
+        setListeners()
 
         viewModel = ViewModelProviders.of(this).get(ConverterViewModel::class.java)
 
+        setViewModelObservers()
+
+        val convertButton: Button = testButton
+        convertButton.setOnClickListener {
+            viewModel.setAmountToBeConverted(1.0)
+            viewModel.convert()
+        }
+
+
+    }
+
+    private fun setViewModelObservers() {
         viewModel.currencyList.observe(this, Observer { currencies ->
             mCurrencyFlagPairList = ArrayList<CurrencyFlagPair>().apply {
                 for (currency in currencies.currencyList.keys) this.add(CurrencyFlagPair(currency))
@@ -56,13 +63,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         viewModel.convertedValue.observe(this, Observer {
             testResponseTV.text = it.toString()
         })
-        val convertButton: Button = testButton
-        convertButton.setOnClickListener {
-            viewModel.setAmountToBeConverted(1.0)
-            viewModel.convert()
-        }
+    }
 
-
+    private fun setListeners() {
+        fromCurrencySpinner.onItemSelectedListener = this
+        toCurrencySpinner.onItemSelectedListener = this
     }
 
     private fun initViews() {
@@ -78,13 +83,19 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         mAdapter = CurrencyAdapter(this, currencyFlagPairList = mCurrencyFlagPairList!!)
 
         fromCurrencySpinner.adapter = mAdapter
+        fromCurrencySpinner.setSelection(mAdapter!!.getPosition(userDefaultFromCurrencyFlagPair))
         toCurrencySpinner.adapter = mAdapter
+        toCurrencySpinner.setSelection(
+            (toCurrencySpinner.adapter as CurrencyAdapter).getPosition(
+                userDefaultToCurrencyFlagPair
+            )
+        )
     }
 
     private fun initList() {
         mCurrencyFlagPairList = ArrayList()
-        mCurrencyFlagPairList!!.add(CurrencyFlagPair("NGN"))
-        mCurrencyFlagPairList!!.add(CurrencyFlagPair("USD"))
+        mCurrencyFlagPairList!!.add(userDefaultFromCurrencyFlagPair)
+        mCurrencyFlagPairList!!.add(userDefaultToCurrencyFlagPair)
     }
 
     override fun onItemSelected(parent: AdapterView<*>, view: View, pos: Int, id: Long) {
@@ -97,6 +108,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             fromCurrencyTV.text = selectedCurrency
         } else if (parent.id == R.id.to_currency_spinner) {
             viewModel.setToCurrency(selectedCurrency)
+            toCurrencyTV.text = selectedCurrency
         }
     }
 
