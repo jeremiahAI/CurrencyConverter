@@ -26,7 +26,12 @@ class ConverterViewModel : ViewModel() {
     private val _toCurrency = MutableLiveData<String>()
     private val _convertedValue = MutableLiveData<Double>()
     private val _amountToBeConverted = MutableLiveData<Double>()
+    private val _firstEtAmount = MutableLiveData<Double>()
+    private val _secondEtAmount = MutableLiveData<Double>()
     private val _date = MutableLiveData<String>()
+
+    var firstEtID = -1
+    var secondEtID = -1
 
 
     init {
@@ -46,6 +51,10 @@ class ConverterViewModel : ViewModel() {
         get() = _rates
     val convertedValue: LiveData<Double>
         get() = _convertedValue
+    val firstEtValue: LiveData<Double>
+        get() = _firstEtAmount
+    val secondEtValue: LiveData<Double>
+        get() = _secondEtAmount
 
 
     @Subscribe
@@ -76,6 +85,7 @@ class ConverterViewModel : ViewModel() {
             list
         }
     }
+
     /**
      * Called to get the rates for the specified date.
      * @param date Date for which rates are to be gotten in YYYY-MM-DD format.
@@ -178,5 +188,12 @@ class ConverterViewModel : ViewModel() {
         _amountToBeConverted.value = amount
     }
 
+    fun setFirstEtAmount(amount: Double) {
+        _firstEtAmount.value = amount
+    }
+
+    fun setSecondEtAmount(amount: Double) {
+        _secondEtAmount.value = amount
+    }
 
 }

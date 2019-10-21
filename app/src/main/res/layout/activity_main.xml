@@ -42,7 +42,7 @@
             app:layout_constraintBottom_toBottomOf="@+id/textView2"
             app:layout_constraintStart_toEndOf="@+id/textView2" />
 
-    <FrameLayout
+    <LinearLayout
             android:id="@+id/fromCurrencyFrameLayout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -63,10 +63,12 @@
 
 
         <com.google.android.material.textfield.TextInputEditText
-                android:layout_width="match_parent"
+                android:id="@+id/from_currency_ET"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:background="#00000000"
                 android:hint="@string/amount_placeholder"
+                android:layout_weight="1"
                 android:inputType="numberDecimal" />
 
 
@@ -77,9 +79,9 @@
                 android:layout_gravity="center_vertical|end"
                 android:text="@string/currency_ngn"
                 android:textSize="20sp" />
-    </FrameLayout>
+    </LinearLayout>
 
-    <FrameLayout
+    <LinearLayout
             android:id="@+id/toCurrencyFrameLayout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -99,10 +101,12 @@
 
 
         <com.google.android.material.textfield.TextInputEditText
-                android:layout_width="match_parent"
+                android:id="@+id/to_currency_ET"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:background="#00000000"
                 android:hint="@string/amount_placeholder"
+                android:layout_weight="1"
                 android:inputType="numberDecimal" />
 
 
@@ -113,7 +117,7 @@
                 android:layout_gravity="center_vertical|end"
                 android:text="@string/currency_ngn"
                 android:textSize="20sp" />
-    </FrameLayout>
+    </LinearLayout>
 
     <LinearLayout
             android:id="@+id/select_currencies_layout"

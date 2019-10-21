@@ -9,7 +9,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatSpinner
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import com.jeremiahVaris.currencyconverter.repository.model.Currencies
 import com.jeremiahVaris.currencyconverter.viewmodel.ConverterViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -26,20 +25,23 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     private lateinit var toCurrencySpinner: AppCompatSpinner
     private lateinit var adapter: ArrayAdapter<String>
     private lateinit var fromCurrencyET: EditText
+    private lateinit var toCurrencyET: EditText
     private lateinit var fromCurrencyTV: TextView
     private lateinit var toCurrencyTV: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        viewModel = ViewModelProviders.of(this).get(ConverterViewModel::class.java)
+
         setContentView(R.layout.activity_main)
 
         initViews()
         initList()
+        setTextWatchers()
 
         setSpinnerAdapters(mCurrencyFlagPairList)
         setListeners()
 
-        viewModel = ViewModelProviders.of(this).get(ConverterViewModel::class.java)
 
         setViewModelObservers()
 
@@ -52,6 +54,19 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
     }
 
+    private fun setTextWatchers() {
+        fromCurrencyET.addTextChangedListener(
+            CurrencyConversionTextWatcher(
+                fromCurrencyET
+            )
+        )
+        toCurrencyET.addTextChangedListener(
+            CurrencyConversionTextWatcher(
+                toCurrencyET
+            )
+        )
+    }
+
     private fun setViewModelObservers() {
         viewModel.currencyList.observe(this, Observer { currencies ->
             mCurrencyFlagPairList = ArrayList<CurrencyFlagPair>().apply {
@@ -62,6 +77,14 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
         viewModel.convertedValue.observe(this, Observer {
             testResponseTV.text = it.toString()
+        })
+
+        viewModel.firstEtValue.observe(this, Observer {
+            //            Toast.makeText(this,"Labalaba",Toast.LENGTH_LONG).show()
+        })
+
+        viewModel.secondEtValue.observe(this, Observer {
+            //            Toast.makeText(this,"Labalaba",Toast.LENGTH_LONG).show()
         })
     }
 
@@ -77,6 +100,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         toCurrencySpinner = to_currency_spinner
         fromCurrencyTV = from_currency
         toCurrencyTV = to_currency
+        toCurrencyET = to_currency_ET
+        fromCurrencyET = from_currency_ET
+
+        viewModel.firstEtID = fromCurrencyET.id
+        viewModel.secondEtID = toCurrencyET.id
     }
 
     private fun setSpinnerAdapters(mCurrencyFlagPairList: java.util.ArrayList<CurrencyFlagPair>?) {
@@ -133,18 +161,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         realtimeConversionIsEnabled = checked
 
     }
-}
-
-private fun Currencies.convertToStringArray(): ArrayList<String> {
-    return currencyList.keys.run {
-        val list = ArrayList<String>()
-        for (currency in this) {
-            list.add(currency)
-        }
-        list
-    }
-
-
 }
 
 
