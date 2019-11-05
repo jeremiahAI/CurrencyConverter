@@ -78,17 +78,14 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         })
 
         viewModel.convertedValue.observe(this, Observer {
-            if (viewModel.amountBeingConverted == viewModel.FIRST_AMOUNT) toCurrencyET.setText(it.toString())
-            if (viewModel.amountBeingConverted == viewModel.SECOND_AMOUNT) fromCurrencyET.setText(it.toString())
+            if (viewModel.amountBeingConverted == viewModel.FIRST_AMOUNT) {
+                toCurrencyET.setText(String.format("%.2f", it))
+            }
+            if (viewModel.amountBeingConverted == viewModel.SECOND_AMOUNT) {
+                fromCurrencyET.setText(String.format("%.2f", it))
+            }
         })
 
-//        viewModel.firstEtValue.observe(this, Observer {
-//            //            Toast.makeText(this,"Labalaba",Toast.LENGTH_LONG).show()
-//        })
-//
-//        viewModel.secondEtValue.observe(this, Observer {
-//            //            Toast.makeText(this,"Labalaba",Toast.LENGTH_LONG).show()
-//        })
     }
 
     private fun setListeners() {
