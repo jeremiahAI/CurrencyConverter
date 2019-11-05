@@ -126,9 +126,17 @@ class CurrencyConversionTextWatcher(val editText: EditText) :
             }
 
             // Set viewModel amount value
-            if (editText.id == viewModel.firstEtID) viewModel.setFirstEtAmount(formatted.toDouble())
-            else if (editText.id == viewModel.secondEtID) viewModel.setSecondEtAmount(formatted.toDouble())
+            if (editText.id == viewModel.firstEtID) {
+                if (!formatted.isBlank()) viewModel.setFirstEtAmount(formatted.toDouble())
+                else viewModel.setFirstEtAmount(0.0)
 
+                viewModel.convertFirstAmount()
+            } else if (editText.id == viewModel.secondEtID) {
+                if (!formatted.isBlank()) viewModel.setSecondEtAmount(formatted.toDouble())
+                else viewModel.setSecondEtAmount(0.0)
+
+                viewModel.convertSecondAmount()
+            }
 
             // Add commas
             formatted = addCommas(formatted)

@@ -24,7 +24,7 @@ data class Rates(
     val date: String = "",
 
     @SerializedName("rates")
-    val rates: TreeMap<String, Double> = TreeMap()
+    val rates: TreeMap<String, String> = TreeMap()
 
 
 )

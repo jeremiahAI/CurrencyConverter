@@ -16,14 +16,17 @@ import org.greenrobot.eventbus.Subscribe
 import java.util.*
 
 class ConverterViewModel : ViewModel() {
+    var amountBeingConverted: Int = 0
+    val FIRST_AMOUNT = 111
+    val SECOND_AMOUNT = 222
     private val repository = CurrencyInfoRepository()
     private val _currencyList = MutableLiveData<Currencies>()
     /**
      * [MutableLiveData] of [TreeMap] that stores [Rates] against [Rates.date] as key.
      */
     private val _rates = MutableLiveData<TreeMap<String, Rates>>()
-    private val _fromCurrency = MutableLiveData<String>()
-    private val _toCurrency = MutableLiveData<String>()
+    private val _firstCurrency = MutableLiveData<String>()
+    private val _secondCurrency = MutableLiveData<String>()
     private val _convertedValue = MutableLiveData<Double>()
     private val _amountToBeConverted = MutableLiveData<Double>()
     private val _firstEtAmount = MutableLiveData<Double>()
@@ -40,8 +43,8 @@ class ConverterViewModel : ViewModel() {
         getRatesAtDate("")
         _date.value = "2019-08-09"
         _amountToBeConverted.value = 1.0
-        _fromCurrency.value = "USD"
-        _toCurrency.value = "NGN"
+        _firstCurrency.value = "USD"
+        _secondCurrency.value = "NGN"
     }
 
 
@@ -160,12 +163,12 @@ class ConverterViewModel : ViewModel() {
         EventBus.getDefault().unregister(this)
     }
 
-    fun setFromCurrency(fromCurrency: String) {
-        _fromCurrency.value = fromCurrency
+    fun setFirstCurrency(fromCurrency: String) {
+        _firstCurrency.value = fromCurrency
     }
 
-    fun setToCurrency(toCurrency: String) {
-        _toCurrency.value = toCurrency
+    fun setSecondCurrency(toCurrency: String) {
+        _secondCurrency.value = toCurrency
     }
 
     fun convert() {
@@ -173,8 +176,10 @@ class ConverterViewModel : ViewModel() {
         if (rates.value != null) {
             if (_rates.value!!.containsKey(_date.value!!)) {
                 val ratesAtSpecifiedDate = _rates.value!![_date.value!!]
-                val fromCurrencyValue: Double = ratesAtSpecifiedDate!!.rates[_fromCurrency.value]!!
-                val toCurrencyValue: Double = ratesAtSpecifiedDate.rates[_toCurrency.value]!!
+                val fromCurrencyValue: Double =
+                    ratesAtSpecifiedDate!!.rates[_firstCurrency.value]!!.toDouble()
+                val toCurrencyValue: Double =
+                    ratesAtSpecifiedDate.rates[_secondCurrency.value]!!.toDouble()
 
                 // Todo: Check that both currency values exist in the Rates object
 
@@ -194,6 +199,20 @@ class ConverterViewModel : ViewModel() {
 
     fun setSecondEtAmount(amount: Double) {
         _secondEtAmount.value = amount
+    }
+
+    fun convertFirstAmount() {
+        amountBeingConverted = FIRST_AMOUNT
+        _amountToBeConverted.value = _firstEtAmount.value
+        convert()
+        _secondEtAmount.value = _convertedValue.value
+    }
+
+    fun convertSecondAmount() {
+        amountBeingConverted = SECOND_AMOUNT
+        _amountToBeConverted.value = _secondEtAmount.value
+        convert()
+        _firstEtAmount.value = _convertedValue.value
     }
 
 }

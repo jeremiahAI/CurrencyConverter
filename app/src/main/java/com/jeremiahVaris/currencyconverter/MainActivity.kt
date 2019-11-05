@@ -4,7 +4,10 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.*
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.EditText
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatSpinner
 import androidx.lifecycle.Observer
@@ -19,7 +22,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     private var userDefaultToCurrencyFlagPair = CurrencyFlagPair("USD")
 
     private var realtimeConversionIsEnabled: Boolean = false
-    private lateinit var testResponseTV: TextView
     private lateinit var viewModel: ConverterViewModel
     private lateinit var fromCurrencySpinner: AppCompatSpinner
     private lateinit var toCurrencySpinner: AppCompatSpinner
@@ -45,11 +47,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
         setViewModelObservers()
 
-        val convertButton: Button = testButton
-        convertButton.setOnClickListener {
-            viewModel.setAmountToBeConverted(1.0)
-            viewModel.convert()
-        }
+//        val convertButton: Button = testButton
+//        convertButton.setOnClickListener {
+//            viewModel.setAmountToBeConverted(1.0)
+//            viewModel.convert()
+//        }
 
 
     }
@@ -76,16 +78,17 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         })
 
         viewModel.convertedValue.observe(this, Observer {
-            testResponseTV.text = it.toString()
+            if (viewModel.amountBeingConverted == viewModel.FIRST_AMOUNT) toCurrencyET.setText(it.toString())
+            if (viewModel.amountBeingConverted == viewModel.SECOND_AMOUNT) fromCurrencyET.setText(it.toString())
         })
 
-        viewModel.firstEtValue.observe(this, Observer {
-            //            Toast.makeText(this,"Labalaba",Toast.LENGTH_LONG).show()
-        })
-
-        viewModel.secondEtValue.observe(this, Observer {
-            //            Toast.makeText(this,"Labalaba",Toast.LENGTH_LONG).show()
-        })
+//        viewModel.firstEtValue.observe(this, Observer {
+//            //            Toast.makeText(this,"Labalaba",Toast.LENGTH_LONG).show()
+//        })
+//
+//        viewModel.secondEtValue.observe(this, Observer {
+//            //            Toast.makeText(this,"Labalaba",Toast.LENGTH_LONG).show()
+//        })
     }
 
     private fun setListeners() {
@@ -95,7 +98,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
     private fun initViews() {
 
-        testResponseTV = test_tv
         fromCurrencySpinner = from_currency_spinner
         toCurrencySpinner = to_currency_spinner
         fromCurrencyTV = from_currency
@@ -132,10 +134,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         val selectedCurrency = (parent.getItemAtPosition(pos) as CurrencyFlagPair).currencyName
 
         if (parent.id == R.id.from_currency_spinner) {
-            viewModel.setFromCurrency(selectedCurrency)
+            viewModel.setFirstCurrency(selectedCurrency)
             fromCurrencyTV.text = selectedCurrency
         } else if (parent.id == R.id.to_currency_spinner) {
-            viewModel.setToCurrency(selectedCurrency)
+            viewModel.setSecondCurrency(selectedCurrency)
             toCurrencyTV.text = selectedCurrency
         }
     }

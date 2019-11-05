@@ -25,15 +25,15 @@ data class FireBaseRates(
     val date: String = "",
 
     @SerializedName("rates")
-    val rates: HashMap<String, Double> = HashMap()
+    val rates: HashMap<String, String> = HashMap()
 ) {
     fun toStandardFormat(): Rates {
         return Rates(timeStamp, historical, baseCurrency, date, rates.convertToTreeMap())
     }
 }
 
-private fun HashMap<String, Double>.convertToTreeMap(): TreeMap<String, Double> {
-    val treeMap = TreeMap<String, Double>()
+private fun HashMap<String, String>.convertToTreeMap(): TreeMap<String, String> {
+    val treeMap = TreeMap<String, String>()
     for ((key, value) in this) {
         treeMap[key] = value
     }
