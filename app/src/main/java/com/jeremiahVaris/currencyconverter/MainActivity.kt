@@ -18,7 +18,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     private var mCurrencyFlagPairList: ArrayList<CurrencyFlagPair>? = null
     private var mAdapter: CurrencyAdapter? = null
-    private var userDefaultFromCurrencyFlagPair = CurrencyFlagPair("NGA")
+    private var userDefaultFromCurrencyFlagPair = CurrencyFlagPair("NGN")
     private var userDefaultToCurrencyFlagPair = CurrencyFlagPair("USD")
 
     private var realtimeConversionIsEnabled: Boolean = false
@@ -69,6 +69,19 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         )
     }
 
+    private fun removeTextWatchers() {
+        fromCurrencyET.removeTextChangedListener(
+            CurrencyConversionTextWatcher(
+                fromCurrencyET
+            )
+        )
+        toCurrencyET.removeTextChangedListener(
+            CurrencyConversionTextWatcher(
+                toCurrencyET
+            )
+        )
+    }
+
     private fun setViewModelObservers() {
         viewModel.currencyList.observe(this, Observer { currencies ->
             mCurrencyFlagPairList = ArrayList<CurrencyFlagPair>().apply {
@@ -94,7 +107,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     }
 
     private fun initViews() {
-
         fromCurrencySpinner = from_currency_spinner
         toCurrencySpinner = to_currency_spinner
         fromCurrencyTV = from_currency
@@ -126,16 +138,17 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     }
 
     override fun onItemSelected(parent: AdapterView<*>, view: View, pos: Int, id: Long) {
-//         An item was selected. You can retrieve the selected item using
-//         parent.getItemAtPosition(pos)
+
         val selectedCurrency = (parent.getItemAtPosition(pos) as CurrencyFlagPair).currencyName
 
         if (parent.id == R.id.from_currency_spinner) {
             viewModel.setFirstCurrency(selectedCurrency)
             fromCurrencyTV.text = selectedCurrency
+            viewModel.convertFirstAmount()
         } else if (parent.id == R.id.to_currency_spinner) {
             viewModel.setSecondCurrency(selectedCurrency)
             toCurrencyTV.text = selectedCurrency
+            viewModel.convertSecondAmount()
         }
     }
 
