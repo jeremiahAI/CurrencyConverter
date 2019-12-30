@@ -73,7 +73,7 @@
 
 
         <TextView
-                android:id="@+id/from_currency"
+                android:id="@+id/first_currency"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical|end"
@@ -111,7 +111,7 @@
 
 
         <TextView
-                android:id="@+id/to_currency"
+                android:id="@+id/second_currency"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical|end"

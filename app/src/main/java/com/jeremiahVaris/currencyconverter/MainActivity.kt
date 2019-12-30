@@ -120,18 +120,20 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         mCurrencyFlagPairList.add(userDefaultToCurrencyFlagPair)
     }
 
-    override fun onItemSelected(parent: AdapterView<*>, view: View, pos: Int, id: Long) {
+    override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {
+        view?.let {
 
-        val selectedCurrency = (parent.getItemAtPosition(pos) as CurrencyFlagPair).currencyName
+            val selectedCurrency = (parent.getItemAtPosition(pos) as CurrencyFlagPair).currencyName
 
-        if (parent.id == R.id.from_currency_spinner) {
-            viewModel.setFirstCurrency(selectedCurrency)
-            from_currency.text = selectedCurrency
-            viewModel.convertFirstAmount()
-        } else if (parent.id == R.id.to_currency_spinner) {
-            viewModel.setSecondCurrency(selectedCurrency)
-            to_currency.text = selectedCurrency
-            viewModel.convertSecondAmount()
+            if (parent.id == R.id.from_currency_spinner) {
+                viewModel.setFirstCurrency(selectedCurrency)
+                first_currency?.text = selectedCurrency
+                viewModel.convertFirstAmount()
+            } else if (parent.id == R.id.to_currency_spinner) {
+                viewModel.setSecondCurrency(selectedCurrency)
+                second_currency?.text = selectedCurrency
+                viewModel.convertSecondAmount()
+            }
         }
     }
 

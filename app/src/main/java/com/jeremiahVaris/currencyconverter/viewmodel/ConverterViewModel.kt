@@ -41,7 +41,7 @@ class ConverterViewModel : ViewModel() {
         repository.getSupportedCurrencies()
         EventBus.getDefault().register(this)
         getRatesAtDate("")
-        _date.value = "2019-08-09"
+        _date.value = "2019-08-10"
         _amountToBeConverted.value = 1.0
         _firstCurrency.value = "USD"
         _secondCurrency.value = "NGN"
