@@ -119,7 +119,7 @@ class ConverterViewModel : ViewModel() {
     fun onRatesReceivedFromFirebase(ratesEvent: GetRatesFromFireBaseEvent) {
         repository.addRatesToRealmDatabase(ratesEvent.ratesObject)
         updateRatesData(ratesEvent.ratesObject)
-        convert()
+        convertFirstAmount()
     }
 
     /**
@@ -132,7 +132,7 @@ class ConverterViewModel : ViewModel() {
         // Todo: handle API call errors. E.g for simulation, wrong API key or wrong date.
         repository.cacheRatesData(ratesEvent.getResponse()!!)
         updateRatesData(ratesEvent.getResponse()!!)
-        convert()
+        convertFirstAmount()
     }
 
     /**
@@ -142,7 +142,7 @@ class ConverterViewModel : ViewModel() {
     @Subscribe
     fun onRatesReceivedFromRealm(ratesEvent: GetRatesFromRealmEvent) {
         updateRatesData(ratesEvent.ratesObject)
-        convert()
+        convertFirstAmount()
     }
 
     /**
@@ -172,19 +172,42 @@ class ConverterViewModel : ViewModel() {
     }
 
     fun convert() {
-
         if (rates.value != null) {
             if (_rates.value!!.containsKey(_date.value!!)) {
                 val ratesAtSpecifiedDate = _rates.value!![_date.value!!]
-                val fromCurrencyValue: Double =
-                    ratesAtSpecifiedDate!!.rates[_firstCurrency.value]!!.toDouble()
-                val toCurrencyValue: Double =
-                    ratesAtSpecifiedDate.rates[_secondCurrency.value]!!.toDouble()
+                var fromCurrencyValue = 0.0
+                var toCurrencyValue = 0.0
+
+                when (amountBeingConverted) {
+                    FIRST_AMOUNT -> {
+                        fromCurrencyValue =
+                            ratesAtSpecifiedDate!!.rates[_firstCurrency.value]!!.toDouble()
+                        toCurrencyValue =
+                            ratesAtSpecifiedDate.rates[_secondCurrency.value]!!.toDouble()
+
+                        _convertedValue.value =
+                            _amountToBeConverted.value!! * toCurrencyValue / fromCurrencyValue
+                        _secondEtAmount.value = _convertedValue.value
+                    }
+                    SECOND_AMOUNT -> {
+                        fromCurrencyValue =
+                            ratesAtSpecifiedDate!!.rates[_secondCurrency.value]!!.toDouble()
+                        toCurrencyValue =
+                            ratesAtSpecifiedDate.rates[_firstCurrency.value]!!.toDouble()
+
+                        _convertedValue.value =
+                            _amountToBeConverted.value!! * toCurrencyValue / fromCurrencyValue
+
+                        _firstEtAmount.value = _convertedValue.value
+                    }
+                }
+
 
                 // Todo: Check that both currency values exist in the Rates object
 
                 _convertedValue.value =
                     _amountToBeConverted.value!! * toCurrencyValue / fromCurrencyValue
+                Log.d("Converted value", _convertedValue.value.toString())
             } else getRatesAtDate(_date.value!!)
         } else getRatesAtDate(_date.value!!)
     }
@@ -201,18 +224,34 @@ class ConverterViewModel : ViewModel() {
         _secondEtAmount.value = amount
     }
 
+
+    fun setFirstEtAmountAndConvert(amount: Double) {
+        if (_firstEtAmount.value != amount) {
+            _firstEtAmount.value = amount
+            convertFirstAmount()
+        }
+    }
+
+    fun setSecondEtAmountAndConvert(amount: Double) {
+        if (_secondEtAmount.value != amount) {
+            _secondEtAmount.value = amount
+            convertSecondAmount()
+        }
+    }
+
     fun convertFirstAmount() {
         amountBeingConverted = FIRST_AMOUNT
-        _amountToBeConverted.value = _firstEtAmount.value
+        _amountToBeConverted.value = _firstEtAmount.value ?: 1.0
         convert()
         _secondEtAmount.value = _convertedValue.value
     }
 
     fun convertSecondAmount() {
         amountBeingConverted = SECOND_AMOUNT
-        _amountToBeConverted.value = _secondEtAmount.value
+        _amountToBeConverted.value = _secondEtAmount.value ?: 1.0
         convert()
         _firstEtAmount.value = _convertedValue.value
     }
+
 
 }

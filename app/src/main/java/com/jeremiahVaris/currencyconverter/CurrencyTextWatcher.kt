@@ -127,25 +127,23 @@ class CurrencyConversionTextWatcher(val editText: EditText) :
 
             // Set viewModel amount value
             if (editText.id == viewModel.firstEtID) {
-                if (!formatted.isBlank()) viewModel.setFirstEtAmount(formatted.toDouble())
-                else viewModel.setFirstEtAmount(0.0)
+                if (!formatted.isBlank()) viewModel.setFirstEtAmountAndConvert(formatted.toDouble())
+                else viewModel.setFirstEtAmountAndConvert(0.0)
 
-                viewModel.convertFirstAmount()
             } else if (editText.id == viewModel.secondEtID) {
-                if (!formatted.isBlank()) viewModel.setSecondEtAmount(formatted.toDouble())
-                else viewModel.setSecondEtAmount(0.0)
+                if (!formatted.isBlank()) viewModel.setSecondEtAmountAndConvert(formatted.toDouble())
+                else viewModel.setSecondEtAmountAndConvert(0.0)
 
-                viewModel.convertSecondAmount()
             }
 
             // Add commas
-            formatted = addCommas(formatted)
+//            formatted = addCommas(formatted)
 
 
 
             current = formatted
             editText.setText(formatted)
-            editText.setSelection(start + count + formatted.length - s.length) //Place cursor at the end
+            editText.setSelection(start + count + formatted.length - s.length)
 
             editText.addTextChangedListener(this)
         }
