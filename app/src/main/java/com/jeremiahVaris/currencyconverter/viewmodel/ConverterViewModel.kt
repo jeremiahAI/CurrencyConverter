@@ -233,14 +233,18 @@ class ConverterViewModel : ViewModel() {
 
     fun convertFirstAmount() {
         amountBeingConverted = FIRST_AMOUNT
-        amountToBeConverted = _firstEtAmount.value ?: 1.0
-        convert()
+        _firstEtAmount.value?.let {
+            amountToBeConverted = it
+            convert()
+        }
     }
 
     fun convertSecondAmount() {
         amountBeingConverted = SECOND_AMOUNT
-        amountToBeConverted = _secondEtAmount.value ?: 1.0
-        convert()
+        _secondEtAmount.value?.let {
+            amountToBeConverted = it
+            convert()
+        }
     }
 
 
