@@ -24,6 +24,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         }
 
     private var realtimeConversionIsEnabled: Boolean = false
+    private lateinit var firstEtTextWatcher: CurrencyConversionTextWatcher
+    private lateinit var secondEtTextWatcher: CurrencyConversionTextWatcher
     private lateinit var viewModel: ConverterViewModel
     private lateinit var adapter: ArrayAdapter<String>
 
@@ -35,6 +37,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
         initViews()
         initList()
+        initTextWatchers()
         setTextWatchers()
 
         setSpinnerAdapters(mCurrencyFlagPairList)
@@ -46,30 +49,21 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
     }
 
+    private fun initTextWatchers() {
+        firstEtTextWatcher = CurrencyConversionTextWatcher(from_currency_ET)
+        secondEtTextWatcher = CurrencyConversionTextWatcher(to_currency_ET)
+    }
+
     private fun setTextWatchers() {
-        from_currency_ET.addTextChangedListener(
-            CurrencyConversionTextWatcher(
-                from_currency_ET
-            )
-        )
-        to_currency_ET.addTextChangedListener(
-            CurrencyConversionTextWatcher(
-                to_currency_ET
-            )
-        )
+        from_currency_ET.addTextChangedListener(firstEtTextWatcher)
+        to_currency_ET.addTextChangedListener(secondEtTextWatcher)
     }
 
     private fun removeTextWatchers() {
         from_currency_ET.removeTextChangedListener(
-            CurrencyConversionTextWatcher(
-                from_currency_ET
-            )
+            firstEtTextWatcher
         )
-        to_currency_ET.removeTextChangedListener(
-            CurrencyConversionTextWatcher(
-                to_currency_ET
-            )
-        )
+        to_currency_ET.removeTextChangedListener(secondEtTextWatcher)
     }
 
     private fun setViewModelObservers() {
@@ -80,13 +74,16 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             setSpinnerAdapters(mCurrencyFlagPairList)
         })
 
-        viewModel.convertedValue.observe(this, Observer {
-            if (viewModel.amountBeingConverted == viewModel.FIRST_AMOUNT) {
-                to_currency_ET.setText(String.format("%.2f", it))
-            }
-            if (viewModel.amountBeingConverted == viewModel.SECOND_AMOUNT) {
-                from_currency_ET.setText(String.format("%.2f", it))
-            }
+        viewModel.firstEtValue.observe(this, Observer {
+            removeTextWatchers()
+            from_currency_ET.setText(String.format("%.2f", it))
+            setTextWatchers()
+        })
+
+        viewModel.secondEtValue.observe(this, Observer {
+            removeTextWatchers()
+            to_currency_ET.setText(String.format("%.2f", it))
+            setTextWatchers()
         })
 
     }

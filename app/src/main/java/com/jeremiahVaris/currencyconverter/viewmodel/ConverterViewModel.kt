@@ -27,8 +27,7 @@ class ConverterViewModel : ViewModel() {
     private val _rates = MutableLiveData<TreeMap<String, Rates>>()
     private val _firstCurrency = MutableLiveData<String>()
     private val _secondCurrency = MutableLiveData<String>()
-    private val _convertedValue = MutableLiveData<Double>()
-    private val _amountToBeConverted = MutableLiveData<Double>()
+    private var amountToBeConverted = 1.0
     private val _firstEtAmount = MutableLiveData<Double>()
     private val _secondEtAmount = MutableLiveData<Double>()
     private val _date = MutableLiveData<String>()
@@ -42,7 +41,6 @@ class ConverterViewModel : ViewModel() {
         EventBus.getDefault().register(this)
         getRatesAtDate("")
         _date.value = "2019-08-10"
-        _amountToBeConverted.value = 1.0
         _firstCurrency.value = "USD"
         _secondCurrency.value = "NGN"
     }
@@ -52,8 +50,6 @@ class ConverterViewModel : ViewModel() {
         get() = _currencyList
     val rates: LiveData<TreeMap<String, Rates>>
         get() = _rates
-    val convertedValue: LiveData<Double>
-        get() = _convertedValue
     val firstEtValue: LiveData<Double>
         get() = _firstEtAmount
     val secondEtValue: LiveData<Double>
@@ -185,9 +181,10 @@ class ConverterViewModel : ViewModel() {
                         toCurrencyValue =
                             ratesAtSpecifiedDate.rates[_secondCurrency.value]!!.toDouble()
 
-                        _convertedValue.value =
-                            _amountToBeConverted.value!! * toCurrencyValue / fromCurrencyValue
-                        _secondEtAmount.value = _convertedValue.value
+                        _secondEtAmount.value =
+                            amountToBeConverted * toCurrencyValue / fromCurrencyValue
+
+                        Log.d("Converted value", _secondEtAmount.value.toString())
                     }
                     SECOND_AMOUNT -> {
                         fromCurrencyValue =
@@ -195,25 +192,20 @@ class ConverterViewModel : ViewModel() {
                         toCurrencyValue =
                             ratesAtSpecifiedDate.rates[_firstCurrency.value]!!.toDouble()
 
-                        _convertedValue.value =
-                            _amountToBeConverted.value!! * toCurrencyValue / fromCurrencyValue
+                        _firstEtAmount.value =
+                            amountToBeConverted * toCurrencyValue / fromCurrencyValue
 
-                        _firstEtAmount.value = _convertedValue.value
+                        Log.d("Converted value", _firstEtAmount.value.toString())
                     }
                 }
-
-
-                // Todo: Check that both currency values exist in the Rates object
-
-                _convertedValue.value =
-                    _amountToBeConverted.value!! * toCurrencyValue / fromCurrencyValue
-                Log.d("Converted value", _convertedValue.value.toString())
-            } else getRatesAtDate(_date.value!!)
-        } else getRatesAtDate(_date.value!!)
+            } else
+                getRatesAtDate(_date.value!!)
+        } else
+            getRatesAtDate(_date.value!!)
     }
 
     fun setAmountToBeConverted(amount: Double) {
-        _amountToBeConverted.value = amount
+        amountToBeConverted = amount
     }
 
     fun setFirstEtAmount(amount: Double) {
@@ -241,16 +233,14 @@ class ConverterViewModel : ViewModel() {
 
     fun convertFirstAmount() {
         amountBeingConverted = FIRST_AMOUNT
-        _amountToBeConverted.value = _firstEtAmount.value ?: 1.0
+        amountToBeConverted = _firstEtAmount.value ?: 1.0
         convert()
-        _secondEtAmount.value = _convertedValue.value
     }
 
     fun convertSecondAmount() {
         amountBeingConverted = SECOND_AMOUNT
-        _amountToBeConverted.value = _secondEtAmount.value ?: 1.0
+        amountToBeConverted = _secondEtAmount.value ?: 1.0
         convert()
-        _firstEtAmount.value = _convertedValue.value
     }
 
 
