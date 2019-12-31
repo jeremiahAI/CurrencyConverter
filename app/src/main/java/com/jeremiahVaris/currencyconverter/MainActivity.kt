@@ -86,6 +86,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             setTextWatchers()
         })
 
+        viewModel.secondEtHint.observe(this, Observer {
+            to_currency_ET.hint = String.format("%.2f", it)
+        })
+
     }
 
     private fun setListeners() {

@@ -19,6 +19,7 @@ class ConverterViewModel : ViewModel() {
     var amountBeingConverted: Int = 0
     val FIRST_AMOUNT = 111
     val SECOND_AMOUNT = 222
+    val HINT = 222
     private val repository = CurrencyInfoRepository()
     private val _currencyList = MutableLiveData<Currencies>()
     /**
@@ -30,6 +31,7 @@ class ConverterViewModel : ViewModel() {
     private var amountToBeConverted = 1.0
     private val _firstEtAmount = MutableLiveData<Double>()
     private val _secondEtAmount = MutableLiveData<Double>()
+    private val _secondEtAmountHint = MutableLiveData<Double>()
     private val _date = MutableLiveData<String>()
 
     var firstEtID = -1
@@ -54,6 +56,8 @@ class ConverterViewModel : ViewModel() {
         get() = _firstEtAmount
     val secondEtValue: LiveData<Double>
         get() = _secondEtAmount
+    val secondEtHint: LiveData<Double>
+        get() = _secondEtAmountHint
 
 
     @Subscribe
@@ -196,6 +200,17 @@ class ConverterViewModel : ViewModel() {
                             amountToBeConverted * toCurrencyValue / fromCurrencyValue
 
                         Log.d("Converted value", _firstEtAmount.value.toString())
+                    }
+                    HINT -> {
+                        fromCurrencyValue =
+                            ratesAtSpecifiedDate!!.rates[_firstCurrency.value]!!.toDouble()
+                        toCurrencyValue =
+                            ratesAtSpecifiedDate.rates[_secondCurrency.value]!!.toDouble()
+
+                        _secondEtAmountHint.value =
+                            amountToBeConverted * toCurrencyValue / fromCurrencyValue
+
+                        Log.d("Converted value", _secondEtAmountHint.value.toString())
                     }
                 }
             } else
