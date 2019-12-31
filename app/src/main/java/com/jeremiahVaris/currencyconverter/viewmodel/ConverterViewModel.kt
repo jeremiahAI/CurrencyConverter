@@ -262,5 +262,11 @@ class ConverterViewModel : ViewModel() {
         }
     }
 
+    fun convertHint() {
+        amountBeingConverted = HINT
+        amountToBeConverted = 1.0
+        convert()
+    }
+
 
 }

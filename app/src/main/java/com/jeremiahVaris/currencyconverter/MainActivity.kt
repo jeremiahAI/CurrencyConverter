@@ -13,7 +13,6 @@ import com.jeremiahVaris.currencyconverter.viewmodel.ConverterViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
-    private var mAdapter: CurrencyAdapter? = null
     private var userDefaultFromCurrencyFlagPair = CurrencyFlagPair("NGN")
     private var userDefaultToCurrencyFlagPair = CurrencyFlagPair("USD")
 
@@ -103,16 +102,20 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     }
 
     private fun setSpinnerAdapters(mCurrencyFlagPairList: java.util.ArrayList<CurrencyFlagPair>?) {
-        mAdapter = CurrencyAdapter(this, currencyFlagPairList = mCurrencyFlagPairList!!)
+        val mAdapter = CurrencyAdapter(this, currencyFlagPairList = mCurrencyFlagPairList!!)
 
         from_currency_spinner.adapter = mAdapter
-//        from_currency_spinner.setSelection(mAdapter!!.getPosition(userDefaultFromCurrencyFlagPair))
         to_currency_spinner.adapter = mAdapter
-//        to_currency_spinner.setSelection(
-//            (to_currency_spinner.adapter as CurrencyAdapter).getPosition(
-//                userDefaultToCurrencyFlagPair
-//            )
-//        )
+
+        mCurrencyFlagPairList.forEachIndexed { index, currencyFlagPair ->
+            if (currencyFlagPair.currencyName == userDefaultFromCurrencyFlagPair.currencyName) from_currency_spinner.setSelection(
+                index
+            )
+            if (currencyFlagPair.currencyName == userDefaultToCurrencyFlagPair.currencyName) to_currency_spinner.setSelection(
+                index
+            )
+        }
+        viewModel.convertHint()
     }
 
     private fun initList() {
