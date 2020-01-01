@@ -47,7 +47,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         setViewModelObservers()
 
 
-
     }
 
     private fun initTextWatchers() {
@@ -94,8 +93,23 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     }
 
     private fun formatAmount(value: Double): String {
-//        if (value>1)
-        return String.format("%.2f", value)
+        var decimalPart = value.toString().substringAfter(".", "")
+
+        var nonZeroDecimalIndex = 0
+        for (char in decimalPart.iterator()) {
+            if (char == '0') nonZeroDecimalIndex++
+            else break
+        }
+
+        val stringFormat =
+            when {
+                value >= 1 -> "%.2f" // If value isn't purely decimal, round to two decimal places
+                nonZeroDecimalIndex == 2 -> "%." + "4" + "f"
+                nonZeroDecimalIndex < 2 -> "%." + "3" + "f"
+                else -> "%." + (nonZeroDecimalIndex + 1) + "f"
+            }
+
+        return String.format(stringFormat, value)
     }
 
     private fun setListeners() {
