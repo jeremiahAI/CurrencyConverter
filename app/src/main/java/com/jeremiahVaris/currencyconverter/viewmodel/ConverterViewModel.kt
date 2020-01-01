@@ -19,7 +19,7 @@ class ConverterViewModel : ViewModel() {
     var amountBeingConverted: Int = 0
     val FIRST_AMOUNT = 111
     val SECOND_AMOUNT = 222
-    val HINT = 222
+    val HINT = 333
     private val repository = CurrencyInfoRepository()
     private val _currencyList = MutableLiveData<Currencies>()
     /**
@@ -43,8 +43,8 @@ class ConverterViewModel : ViewModel() {
         EventBus.getDefault().register(this)
         getRatesAtDate("")
         _date.value = "2019-08-10"
-        _firstCurrency.value = "USD"
-        _secondCurrency.value = "NGN"
+//        _firstCurrency.value = "USD"
+//        _secondCurrency.value = "NGN"
     }
 
 
@@ -163,12 +163,12 @@ class ConverterViewModel : ViewModel() {
         EventBus.getDefault().unregister(this)
     }
 
-    fun setFirstCurrency(fromCurrency: String) {
-        _firstCurrency.value = fromCurrency
+    fun setFirstCurrency(firstCurrency: String) {
+        _firstCurrency.value = firstCurrency
     }
 
-    fun setSecondCurrency(toCurrency: String) {
-        _secondCurrency.value = toCurrency
+    fun setSecondCurrency(secondCurrency: String) {
+        _secondCurrency.value = secondCurrency
     }
 
     fun convert() {

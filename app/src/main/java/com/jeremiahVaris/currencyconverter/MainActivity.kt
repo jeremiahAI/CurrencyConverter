@@ -39,11 +39,13 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         initTextWatchers()
         setTextWatchers()
 
-        setSpinnerAdapters(mCurrencyFlagPairList)
         setListeners()
+        setSpinnerAdapters(mCurrencyFlagPairList)
+
 
 
         setViewModelObservers()
+
 
 
     }
@@ -73,22 +75,27 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             setSpinnerAdapters(mCurrencyFlagPairList)
         })
 
-        viewModel.firstEtValue.observe(this, Observer {
+        viewModel.firstEtValue.observe(this, Observer { value ->
             removeTextWatchers()
-            from_currency_ET.setText(String.format("%.2f", it))
+            from_currency_ET.setText(formatAmount(value))
             setTextWatchers()
         })
 
-        viewModel.secondEtValue.observe(this, Observer {
+        viewModel.secondEtValue.observe(this, Observer { value ->
             removeTextWatchers()
-            to_currency_ET.setText(String.format("%.2f", it))
+            to_currency_ET.setText(formatAmount(value))
             setTextWatchers()
         })
 
-        viewModel.secondEtHint.observe(this, Observer {
-            to_currency_ET.hint = String.format("%.2f", it)
+        viewModel.secondEtHint.observe(this, Observer { value ->
+            to_currency_ET.hint = formatAmount(value)
         })
 
+    }
+
+    private fun formatAmount(value: Double): String {
+//        if (value>1)
+        return String.format("%.2f", value)
     }
 
     private fun setListeners() {
@@ -108,14 +115,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         to_currency_spinner.adapter = mAdapter
 
         mCurrencyFlagPairList.forEachIndexed { index, currencyFlagPair ->
-            if (currencyFlagPair.currencyName == userDefaultFromCurrencyFlagPair.currencyName) from_currency_spinner.setSelection(
-                index
-            )
-            if (currencyFlagPair.currencyName == userDefaultToCurrencyFlagPair.currencyName) to_currency_spinner.setSelection(
-                index
-            )
+            if (currencyFlagPair.currencyName == userDefaultFromCurrencyFlagPair.currencyName)
+                from_currency_spinner.setSelection(index)
+            if (currencyFlagPair.currencyName == userDefaultToCurrencyFlagPair.currencyName)
+                to_currency_spinner.setSelection(index)
         }
-        viewModel.convertHint()
     }
 
     private fun initList() {
@@ -138,6 +142,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
                 second_currency?.text = selectedCurrency
                 viewModel.convertSecondAmount()
             }
+
+            viewModel.convertHint()
         }
     }
 
