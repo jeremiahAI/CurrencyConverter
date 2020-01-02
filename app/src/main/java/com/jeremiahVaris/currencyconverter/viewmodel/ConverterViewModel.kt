@@ -13,7 +13,9 @@ import com.jeremiahVaris.currencyconverter.repository.model.Currencies
 import com.jeremiahVaris.currencyconverter.repository.model.Rates
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
+import java.text.SimpleDateFormat
 import java.util.*
+
 
 class ConverterViewModel : ViewModel() {
     var amountBeingConverted: Int = 0
@@ -39,12 +41,26 @@ class ConverterViewModel : ViewModel() {
 
 
     init {
+        // Todo: Handle no network
         repository.getSupportedCurrencies()
         EventBus.getDefault().register(this)
         getRatesAtDate("")
-        _date.value = "2019-08-10"
+        _date.value =
+            getCurrentDate()
+//            "2019-08-10"
 //        _firstCurrency.value = "USD"
 //        _secondCurrency.value = "NGN"
+    }
+
+    /**
+     * @return Current date in yyyy-MM-dd format.
+     */
+    private fun getCurrentDate(): String {
+        val c = Calendar.getInstance().time
+
+        val df = SimpleDateFormat("yyyy-MM-dd")
+        val formattedDate: String = df.format(c)
+        return formattedDate
     }
 
 
