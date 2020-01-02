@@ -104,7 +104,13 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     }
 
     private fun formatAmount(value: Double): String {
-        var decimalPart = value.toString().substringAfter(".", "")
+        val decimalPart: String = when {
+            value.toString().contains("E-") -> { // When value is represented in exponent form
+                convertExponentToDecimalPartRepresentation(value)
+            }
+            else -> value.toString().substringAfter(".", "")
+        }
+
 
         var nonZeroDecimalIndex = 0
         for (char in decimalPart.iterator()) {
@@ -117,10 +123,20 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
                 value >= 1 -> "%.2f" // If value isn't purely decimal, round to two decimal places
                 nonZeroDecimalIndex == 2 -> "%." + "4" + "f"
                 nonZeroDecimalIndex < 2 -> "%." + "3" + "f"
-                else -> "%." + (nonZeroDecimalIndex + 1) + "f"
+                else -> "%." + (nonZeroDecimalIndex + 2) + "f"
             }
 
         return String.format(stringFormat, value)
+    }
+
+    private fun convertExponentToDecimalPartRepresentation(value: Double): String {
+        val exponentString = value.toString()[value.toString().length - 1]
+        val exponent = Character.getNumericValue(exponentString)
+        var result = ""
+        repeat(exponent - 1) {
+            result += "0"
+        }
+        return result + value.toString().replace(".", "").replace("""E-\d""".toRegex(), "")
     }
 
     private fun setListeners() {
