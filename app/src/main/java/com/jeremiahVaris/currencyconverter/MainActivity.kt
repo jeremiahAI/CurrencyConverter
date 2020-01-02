@@ -88,7 +88,18 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
         viewModel.secondEtHint.observe(this, Observer { value ->
             to_currency_ET.hint = formatAmount(value)
+            updateConversionRate(formatAmount(value))
         })
+
+    }
+
+    private fun updateConversionRate(convertedAmount: String) {
+        viewModel.firstCurrencyFullName?.let {
+            firstCurrencyRateTv.text = "1 $it equals"
+        }
+        viewModel.secondCurrencyFullName?.let {
+            secondCurrencyRateTv.text = convertedAmount + " " + it
+        }
 
     }
 

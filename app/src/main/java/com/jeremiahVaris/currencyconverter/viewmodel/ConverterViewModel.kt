@@ -74,6 +74,14 @@ class ConverterViewModel : ViewModel() {
         get() = _secondEtAmount
     val secondEtHint: LiveData<Double>
         get() = _secondEtAmountHint
+    val firstCurrencyFullName: String?
+        get() = _currencyList.value?.currencyList?.get(_firstCurrency.value)
+    val secondCurrencyFullName: String?
+        get() = _currencyList.value?.currencyList?.get(_secondCurrency.value)
+    val firstCurrency: String?
+        get() = _firstCurrency.value
+    val secondCurrency: String?
+        get() = _secondCurrency.value
 
 
     @Subscribe
