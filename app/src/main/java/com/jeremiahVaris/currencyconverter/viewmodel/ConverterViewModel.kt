@@ -11,6 +11,7 @@ import com.jeremiahVaris.currencyconverter.repository.events.GetRatesFromRealmEv
 import com.jeremiahVaris.currencyconverter.repository.events.GetSupportedCurrenciesEvent
 import com.jeremiahVaris.currencyconverter.repository.model.Currencies
 import com.jeremiahVaris.currencyconverter.repository.model.Rates
+import com.jeremiahVaris.currencyconverter.rest.core.base.NoNetworkEvent
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import java.text.SimpleDateFormat
@@ -21,10 +22,10 @@ import javax.inject.Inject
 class ConverterViewModel @Inject constructor(
     private val repository: CurrencyInfoRepository
 ) : ViewModel() {
-    var amountBeingConverted: Int = 0
-    val FIRST_AMOUNT = 111
-    val SECOND_AMOUNT = 222
-    val HINT = 333
+    private var amountBeingConverted: Int = 0
+    private val FIRST_AMOUNT = 111
+    private val SECOND_AMOUNT = 222
+    private val HINT = 333
     private val _currencyList = MutableLiveData<Currencies>()
     /**
      * [MutableLiveData] of [TreeMap] that stores [Rates] against [Rates.date] as key.
@@ -37,14 +38,15 @@ class ConverterViewModel @Inject constructor(
     private val _secondEtAmount = MutableLiveData<Double>()
     private val _secondEtAmountHint = MutableLiveData<Double>()
     private val _date = MutableLiveData<String>()
+    private val _networkError = MutableLiveData<NoNetworkEvent>()
+
 
     var firstEtID = -1
     var secondEtID = -1
 
 
     init {
-        // Todo: Handle no network
-        repository.getSupportedCurrencies()
+        getSupportedCurrencies()
         EventBus.getDefault().register(this)
         getRatesAtDate("")
         _date.value =
@@ -52,6 +54,10 @@ class ConverterViewModel @Inject constructor(
 //            "2019-08-10"
 //        _firstCurrency.value = "USD"
 //        _secondCurrency.value = "NGN"
+    }
+
+    fun getSupportedCurrencies() {
+        repository.getSupportedCurrencies()
     }
 
     /**
@@ -80,10 +86,8 @@ class ConverterViewModel @Inject constructor(
         get() = _currencyList.value?.currencyList?.get(_firstCurrency.value)
     val secondCurrencyFullName: String?
         get() = _currencyList.value?.currencyList?.get(_secondCurrency.value)
-    val firstCurrency: String?
-        get() = _firstCurrency.value
-    val secondCurrency: String?
-        get() = _secondCurrency.value
+    val networkError: LiveData<NoNetworkEvent>
+        get() = _networkError
 
 
     @Subscribe
@@ -169,6 +173,15 @@ class ConverterViewModel @Inject constructor(
     fun onRatesReceivedFromRealm(ratesEvent: GetRatesFromRealmEvent) {
         updateRatesData(ratesEvent.ratesObject)
         convertFirstAmount()
+    }
+
+    /**
+     * Called when [Rates] are retrieved from Realm Database. Updates viewModel data and calls [convert].
+     * @param ratesEvent Event wrapper containing [Rates] object.
+     */
+    @Subscribe
+    fun onNoNetworkErrorReceived(noNetworkEvent: NoNetworkEvent) {
+        _networkError.value = noNetworkEvent
     }
 
     /**

@@ -1,7 +1,10 @@
 package com.jeremiahVaris.currencyconverter.di.modules
 
+import android.app.Application
+import android.content.Context
 import com.google.gson.Gson
 import com.jeremiahVaris.currencyconverter.BuildConfig
+import com.jeremiahVaris.currencyconverter.rest.core.NetworkConnectionInterceptor
 import com.jeremiahVaris.currencyconverter.rest.fixerIo.api.ApiFixer
 import dagger.Module
 import dagger.Provides
@@ -24,12 +27,12 @@ class NetworkModule {
     @Singleton
     @Provides
 //    @Named("mainRetrofit")
-    fun providesRetrofit(): Retrofit {
+    fun providesRetrofit(context: Context): Retrofit {
 
         val okHttpClientBuilder = OkHttpClient.Builder()
         okHttpClientBuilder
             .connectTimeout(TIMEOUT.toLong(), TimeUnit.SECONDS)
-//            .addInterceptor(NetworkConnectionInterceptor(context))
+            .addInterceptor(NetworkConnectionInterceptor(context))
 
         if (BuildConfig.DEBUG) {
             val httpLoggingInterceptor = HttpLoggingInterceptor()
@@ -65,5 +68,12 @@ class NetworkModule {
     @Provides
     fun providesFixerApiService(retrofit: Retrofit): ApiFixer {
         return retrofit.create(ApiFixer::class.java)
+    }
+
+
+    @Provides
+    @Singleton
+    fun providesContext(application: Application): Context {
+        return application.applicationContext
     }
 }

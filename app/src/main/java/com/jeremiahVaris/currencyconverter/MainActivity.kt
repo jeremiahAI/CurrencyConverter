@@ -7,8 +7,10 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import com.google.android.material.snackbar.Snackbar
 import com.jeremiahVaris.currencyconverter.di.ViewModelFactory
 import com.jeremiahVaris.currencyconverter.viewmodel.ConverterViewModel
 import dagger.android.AndroidInjection
@@ -99,6 +101,32 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             updateConversionRate(formatAmount(value))
         })
 
+        viewModel.networkError.observe(this, Observer {
+            // Todo: Handle offline mode
+            showSnackBar("Please check your internet connection", true)
+        })
+
+    }
+
+    private fun showSnackBar(message: String, static: Boolean) {
+        var snackBarLength = Snackbar.LENGTH_SHORT
+
+        if (static) snackBarLength = Snackbar.LENGTH_INDEFINITE
+
+        val mySnackBar = Snackbar.make(
+            from_currency_ET,
+            message, snackBarLength
+        )
+
+
+        mySnackBar.setActionTextColor(ContextCompat.getColor(this, R.color.colorAccent))
+
+        mySnackBar.setAction("OK") {
+            mySnackBar.dismiss()
+            viewModel.getSupportedCurrencies()
+        }
+
+        mySnackBar.show()
     }
 
     private fun updateConversionRate(convertedAmount: String) {
