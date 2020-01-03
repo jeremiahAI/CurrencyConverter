@@ -67,6 +67,15 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
+    //Dagger
+    implementation 'com.google.dagger:dagger:2.25.4'
+    kapt 'com.google.dagger:dagger-compiler:2.25.4'
+
+    // dagger android
+    kapt "com.google.dagger:dagger-android-processor:2.25.4"
+    implementation "com.google.dagger:dagger-android:2.25.4"
+    implementation "com.google.dagger:dagger-android-support:2.25.4"
 }
 
 apply plugin: 'com.google.gms.google-services'

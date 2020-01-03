@@ -15,14 +15,16 @@ import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.inject.Inject
 
 
-class ConverterViewModel : ViewModel() {
+class ConverterViewModel @Inject constructor(
+    private val repository: CurrencyInfoRepository
+) : ViewModel() {
     var amountBeingConverted: Int = 0
     val FIRST_AMOUNT = 111
     val SECOND_AMOUNT = 222
     val HINT = 333
-    private val repository = CurrencyInfoRepository()
     private val _currencyList = MutableLiveData<Currencies>()
     /**
      * [MutableLiveData] of [TreeMap] that stores [Rates] against [Rates.date] as key.

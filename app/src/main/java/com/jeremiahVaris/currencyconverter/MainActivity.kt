@@ -8,13 +8,19 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
+import com.jeremiahVaris.currencyconverter.di.ViewModelFactory
 import com.jeremiahVaris.currencyconverter.viewmodel.ConverterViewModel
+import dagger.android.AndroidInjection
 import kotlinx.android.synthetic.main.activity_main.*
+import javax.inject.Inject
 
 class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     private var userDefaultFromCurrencyFlagPair = CurrencyFlagPair("NGN")
     private var userDefaultToCurrencyFlagPair = CurrencyFlagPair("USD")
+
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
 
     private var mCurrencyFlagPairList: ArrayList<CurrencyFlagPair> =
         ArrayList<CurrencyFlagPair>().apply {
@@ -30,7 +36,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel = ViewModelProviders.of(this).get(ConverterViewModel::class.java)
+        AndroidInjection.inject(this)
+        viewModel = ViewModelProvider(this, viewModelFactory)
+            .get(ConverterViewModel::class.java)
 
         setContentView(R.layout.activity_main)
 

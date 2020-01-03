@@ -17,8 +17,11 @@ import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import javax.inject.Inject
 
-class CurrencyInfoRepository {
+class CurrencyInfoRepository @Inject constructor(
+    private var apiFixerRestClient: ApiFixerRestClient
+) {
     private val fireBaseRatesDatabasePath = "rates"
 
     private var database = FirebaseDatabase.getInstance().reference.child(fireBaseRatesDatabasePath)
@@ -45,7 +48,7 @@ class CurrencyInfoRepository {
      * Result gets returned via [Eventbus]
      */
     fun getSupportedCurrencies() {
-        ApiFixerRestClient.getSupportedCurrencies()
+        apiFixerRestClient.getSupportedCurrencies()
     }
 
     /**
@@ -97,8 +100,8 @@ class CurrencyInfoRepository {
     }
 
     private fun getRatesFromFixerApi(date: String, currencies: String) {
-        if (date == getCurrentDateAsString()) ApiFixerRestClient.getLatestRates(currencies)
-        else ApiFixerRestClient.getHistoricalRates(currencies, date)
+        if (date == getCurrentDateAsString()) apiFixerRestClient.getLatestRates(currencies)
+        else apiFixerRestClient.getHistoricalRates(currencies, date)
     }
 
     /**
