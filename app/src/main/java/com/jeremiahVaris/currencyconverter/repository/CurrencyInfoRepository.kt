@@ -76,7 +76,7 @@ class CurrencyInfoRepository @Inject constructor(
      * Get the [Rates] at the specified date from either FireBase, or Fixer.io API, in that order of priority.
      * @param date Date in YYYY-MM-DD format
      */
-    private fun getRatesFromNetwork(date: String, currencies: String) {
+    fun getRatesFromNetwork(date: String, currencies: String) {
 
         // Check FireBase
         database.child(date).addListenerForSingleValueEvent(object : ValueEventListener {

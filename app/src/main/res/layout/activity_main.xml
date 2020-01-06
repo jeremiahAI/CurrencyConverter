@@ -1,200 +1,206 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:id="@+id/swipeRefreshLayout"
         tools:context=".MainActivity">
 
-    <TextView
-            android:id="@+id/textView"
-            style="@style/TextAppearance.AppCompat.Display1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="32dp"
-            android:layout_marginTop="128dp"
-            android:text="@string/currency"
-            android:textColor="@color/colorPrimary"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-            android:id="@+id/textView2"
-            style="@style/TextAppearance.AppCompat.Display1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/converter"
-            android:textColor="@color/colorPrimary"
-            app:layout_constraintStart_toStartOf="@+id/textView"
-            app:layout_constraintTop_toBottomOf="@+id/textView" />
-
-    <View
-            android:id="@+id/view"
-            android:layout_width="12sp"
-            android:layout_height="12sp"
-            android:layout_marginStart="4dp"
-            android:layout_marginLeft="4dp"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/round_shape"
-            android:backgroundTint="@color/colorAccent"
-            app:layout_constraintBottom_toBottomOf="@+id/textView2"
-            app:layout_constraintStart_toEndOf="@+id/textView2" />
-
-    <TextView
-            android:id="@+id/firstCurrencyRateTv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:textSize="16sp"
-            app:layout_constraintStart_toStartOf="@+id/textView2"
-            app:layout_constraintTop_toBottomOf="@+id/textView2"
-            tools:text="1 Nigerian Naira equals" />
-
-    <TextView
-            android:id="@+id/secondCurrencyRateTv"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textColor="#000"
-            android:textSize="32sp"
-            app:layout_constraintEnd_toEndOf="@+id/fromCurrencyFrameLayout"
-            app:layout_constraintStart_toStartOf="@+id/textView2"
-            app:layout_constraintTop_toBottomOf="@+id/firstCurrencyRateTv"
-            tools:text="0.0028 United States Dollars" />
-
-    <LinearLayout
-            android:id="@+id/fromCurrencyFrameLayout"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
-            android:layout_marginLeft="32dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginEnd="32dp"
-            android:layout_marginRight="32dp"
-            android:background="@drawable/currency_amount_layout_background"
-            android:paddingStart="16dp"
-            android:paddingTop="12dp"
-
-            android:paddingEnd="16dp"
-            android:paddingBottom="12dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/secondCurrencyRateTv">
-
-
-        <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/from_currency_ET"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="#00000000"
-                android:hint="@string/amount_placeholder"
-                android:inputType="numberDecimal" />
-
-
-        <TextView
-                android:id="@+id/first_currency"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical|end"
-                android:text="@string/currency_ngn"
-                android:textSize="20sp" />
-    </LinearLayout>
-
-    <LinearLayout
-            android:id="@+id/toCurrencyFrameLayout"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
-            android:layout_marginLeft="32dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="32dp"
-            android:layout_marginRight="32dp"
-            android:background="@drawable/currency_amount_layout_background"
-            android:paddingStart="16dp"
-            android:paddingTop="12dp"
-            android:paddingEnd="16dp"
-            android:paddingBottom="12dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/fromCurrencyFrameLayout">
-
-
-        <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/to_currency_ET"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:background="#00000000"
-                android:hint="@string/amount_placeholder"
-                android:layout_weight="1"
-                android:inputType="numberDecimal" />
-
-
-        <TextView
-                android:id="@+id/second_currency"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical|end"
-                android:text="@string/currency_ngn"
-                android:textSize="20sp" />
-    </LinearLayout>
-
-    <LinearLayout
-            android:id="@+id/select_currencies_layout"
+    <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
-            android:layout_marginLeft="32dp"
-            android:layout_marginTop="32dp"
-            android:layout_marginEnd="32dp"
-            android:layout_marginRight="32dp"
-            android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/toCurrencyFrameLayout">
+            android:layout_height="match_parent">
 
-        <androidx.appcompat.widget.AppCompatSpinner
-                android:id="@+id/from_currency_spinner"
+        <TextView
+                android:id="@+id/textView"
+                style="@style/TextAppearance.AppCompat.Display1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="32dp"
+                android:layout_marginTop="96dp"
+                android:text="@string/currency"
+                android:textColor="@color/colorPrimary"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+                android:id="@+id/textView2"
+                style="@style/TextAppearance.AppCompat.Display1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/converter"
+                android:textColor="@color/colorPrimary"
+                app:layout_constraintStart_toStartOf="@+id/textView"
+                app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+        <View
+                android:id="@+id/view"
+                android:layout_width="12sp"
+                android:layout_height="12sp"
+                android:layout_marginStart="4dp"
+                android:layout_marginLeft="4dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/round_shape"
+                android:backgroundTint="@color/colorAccent"
+                app:layout_constraintBottom_toBottomOf="@+id/textView2"
+                app:layout_constraintStart_toEndOf="@+id/textView2" />
+
+        <TextView
+                android:id="@+id/firstCurrencyRateTv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:textSize="16sp"
+                app:layout_constraintStart_toStartOf="@+id/textView2"
+                app:layout_constraintTop_toBottomOf="@+id/textView2"
+                tools:text="1 Nigerian Naira equals" />
+
+        <TextView
+                android:id="@+id/secondCurrencyRateTv"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/currency_spinner_shape">
+                android:layout_marginTop="8dp"
+                android:textColor="#000"
+                android:textSize="32sp"
+                app:layout_constraintEnd_toEndOf="@+id/fromCurrencyFrameLayout"
+                app:layout_constraintStart_toStartOf="@+id/textView2"
+                app:layout_constraintTop_toBottomOf="@+id/firstCurrencyRateTv"
+                tools:text="0.0028 United States Dollars" />
 
-        </androidx.appcompat.widget.AppCompatSpinner>
-
-        <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
-                android:src="@drawable/ic_compare_arrows_999_24dp" />
-
-        <androidx.appcompat.widget.AppCompatSpinner
-                android:id="@+id/to_currency_spinner"
+        <LinearLayout
+                android:id="@+id/fromCurrencyFrameLayout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/currency_spinner_shape">
+                android:layout_marginStart="32dp"
+                android:layout_marginLeft="32dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginEnd="32dp"
+                android:layout_marginRight="32dp"
+                android:background="@drawable/currency_amount_layout_background"
+                android:paddingStart="16dp"
+                android:paddingTop="12dp"
 
-        </androidx.appcompat.widget.AppCompatSpinner>
-    </LinearLayout>
+                android:paddingEnd="16dp"
+                android:paddingBottom="12dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/secondCurrencyRateTv">
 
 
-    <!--    <Button-->
-    <!--            android:id="@+id/testButton"-->
-    <!--            android:layout_width="wrap_content"-->
-    <!--            android:layout_height="wrap_content"-->
-    <!--            android:layout_marginStart="8dp"-->
-    <!--            android:layout_marginLeft="8dp"-->
-    <!--            android:layout_marginTop="32dp"-->
-    <!--            android:layout_marginEnd="8dp"-->
-    <!--            android:layout_marginRight="8dp"-->
-    <!--            android:text="convert"-->
-    <!--            app:layout_constraintEnd_toEndOf="parent"-->
-    <!--            app:layout_constraintStart_toStartOf="parent"-->
-    <!--            app:layout_constraintTop_toBottomOf="@+id/select_currencies_layout" />-->
+            <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/from_currency_ET"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="#00000000"
+                    android:hint="@string/amount_placeholder"
+                    android:inputType="numberDecimal" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+
+            <TextView
+                    android:id="@+id/first_currency"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical|end"
+                    android:text="@string/currency_ngn"
+                    android:textSize="20sp" />
+        </LinearLayout>
+
+        <LinearLayout
+                android:id="@+id/toCurrencyFrameLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="32dp"
+                android:layout_marginLeft="32dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="32dp"
+                android:layout_marginRight="32dp"
+                android:background="@drawable/currency_amount_layout_background"
+                android:paddingStart="16dp"
+                android:paddingTop="12dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="12dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/fromCurrencyFrameLayout">
+
+
+            <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/to_currency_ET"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="#00000000"
+                    android:hint="@string/amount_placeholder"
+                    android:inputType="numberDecimal" />
+
+
+            <TextView
+                    android:id="@+id/second_currency"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical|end"
+                    android:text="@string/currency_ngn"
+                    android:textSize="20sp" />
+        </LinearLayout>
+
+        <LinearLayout
+                android:id="@+id/select_currencies_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="32dp"
+                android:layout_marginLeft="32dp"
+                android:layout_marginTop="32dp"
+                android:layout_marginEnd="32dp"
+                android:layout_marginRight="32dp"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/toCurrencyFrameLayout">
+
+            <androidx.appcompat.widget.AppCompatSpinner
+                    android:id="@+id/from_currency_spinner"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/currency_spinner_shape">
+
+            </androidx.appcompat.widget.AppCompatSpinner>
+
+            <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_compare_arrows_999_24dp" />
+
+            <androidx.appcompat.widget.AppCompatSpinner
+                    android:id="@+id/to_currency_spinner"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/currency_spinner_shape">
+
+            </androidx.appcompat.widget.AppCompatSpinner>
+        </LinearLayout>
+
+
+        <!--    <Button-->
+        <!--            android:id="@+id/testButton"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_marginStart="8dp"-->
+        <!--            android:layout_marginLeft="8dp"-->
+        <!--            android:layout_marginTop="32dp"-->
+        <!--            android:layout_marginEnd="8dp"-->
+        <!--            android:layout_marginRight="8dp"-->
+        <!--            android:text="convert"-->
+        <!--            app:layout_constraintEnd_toEndOf="parent"-->
+        <!--            app:layout_constraintStart_toStartOf="parent"-->
+        <!--            app:layout_constraintTop_toBottomOf="@+id/select_currencies_layout" />-->
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

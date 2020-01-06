@@ -101,6 +101,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             updateConversionRate(formatAmount(value))
         })
 
+        viewModel.isRefreshing.observe(this, Observer {
+            swipeRefreshLayout.isRefreshing = it
+        })
+
         viewModel.networkError.observe(this, Observer {
             // Todo: Handle offline mode
             showSnackBar("Please check your internet connection", true)
@@ -110,7 +114,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
     private fun showSnackBar(message: String, static: Boolean) {
         var snackBarLength = Snackbar.LENGTH_SHORT
-
         if (static) snackBarLength = Snackbar.LENGTH_INDEFINITE
 
         val mySnackBar = Snackbar.make(
@@ -178,6 +181,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     private fun setListeners() {
         from_currency_spinner.onItemSelectedListener = this
         to_currency_spinner.onItemSelectedListener = this
+        swipeRefreshLayout.setOnRefreshListener {
+            viewModel.refresh()
+        }
     }
 
     private fun initViews() {

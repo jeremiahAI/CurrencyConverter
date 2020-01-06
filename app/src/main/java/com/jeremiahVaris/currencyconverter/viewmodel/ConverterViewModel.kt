@@ -39,6 +39,7 @@ class ConverterViewModel @Inject constructor(
     private val _secondEtAmountHint = MutableLiveData<Double>()
     private val _date = MutableLiveData<String>()
     private val _networkError = MutableLiveData<NoNetworkEvent>()
+    private val _isRefreshing = MutableLiveData<Boolean>()
 
 
     var firstEtID = -1
@@ -51,9 +52,6 @@ class ConverterViewModel @Inject constructor(
         getRatesAtDate("")
         _date.value =
             getCurrentDate()
-//            "2019-08-10"
-//        _firstCurrency.value = "USD"
-//        _secondCurrency.value = "NGN"
     }
 
     fun getSupportedCurrencies() {
@@ -88,6 +86,8 @@ class ConverterViewModel @Inject constructor(
         get() = _currencyList.value?.currencyList?.get(_secondCurrency.value)
     val networkError: LiveData<NoNetworkEvent>
         get() = _networkError
+    val isRefreshing: LiveData<Boolean>
+        get() = _isRefreshing
 
 
     @Subscribe
@@ -108,7 +108,7 @@ class ConverterViewModel @Inject constructor(
     }
 
 
-    fun Currencies.convertToString(): String {
+    private fun Currencies.convertToString(): String {
         return currencyList.keys.run {
             var list = ""
             for (currency in this) {
@@ -147,6 +147,7 @@ class ConverterViewModel @Inject constructor(
      */
     @Subscribe
     fun onRatesReceivedFromFirebase(ratesEvent: GetRatesFromFireBaseEvent) {
+        _isRefreshing.value = false
         repository.addRatesToRealmDatabase(ratesEvent.ratesObject)
         updateRatesData(ratesEvent.ratesObject)
         convertFirstAmount()
@@ -159,6 +160,8 @@ class ConverterViewModel @Inject constructor(
      */
     @Subscribe
     fun onRatesReceivedFromFixerAPI(ratesEvent: GetRatesFromFixerApiEvent) {
+        _isRefreshing.value = false
+
         // Todo: handle API call errors. E.g for simulation, wrong API key or wrong date.
         repository.cacheRatesData(ratesEvent.getResponse()!!)
         updateRatesData(ratesEvent.getResponse()!!)
@@ -171,6 +174,7 @@ class ConverterViewModel @Inject constructor(
      */
     @Subscribe
     fun onRatesReceivedFromRealm(ratesEvent: GetRatesFromRealmEvent) {
+        _isRefreshing.value = false
         updateRatesData(ratesEvent.ratesObject)
         convertFirstAmount()
     }
@@ -210,7 +214,7 @@ class ConverterViewModel @Inject constructor(
         _secondCurrency.value = secondCurrency
     }
 
-    fun convert() {
+    private fun convert() {
         if (rates.value != null) {
             if (_rates.value!!.containsKey(_date.value!!)) {
                 val ratesAtSpecifiedDate = _rates.value!![_date.value!!]
@@ -258,19 +262,6 @@ class ConverterViewModel @Inject constructor(
             getRatesAtDate(_date.value!!)
     }
 
-    fun setAmountToBeConverted(amount: Double) {
-        amountToBeConverted = amount
-    }
-
-    fun setFirstEtAmount(amount: Double) {
-        _firstEtAmount.value = amount
-    }
-
-    fun setSecondEtAmount(amount: Double) {
-        _secondEtAmount.value = amount
-    }
-
-
     fun setFirstEtAmountAndConvert(amount: Double) {
         if (_firstEtAmount.value != amount) {
             _firstEtAmount.value = amount
@@ -305,6 +296,18 @@ class ConverterViewModel @Inject constructor(
         amountBeingConverted = HINT
         amountToBeConverted = 1.0
         convert()
+    }
+
+    /**
+     * Refreshes the [_rates] to get the latest value.
+     */
+    fun refresh() {
+        _isRefreshing.value = true
+
+        _currencyList.value?.let {
+            repository.getRatesFromNetwork(getCurrentDate(), it.convertToString())
+        }
+            ?: repository.getSupportedCurrencies()
     }
 
 
