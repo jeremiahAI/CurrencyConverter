@@ -22,6 +22,7 @@ import javax.inject.Inject
 class ConverterViewModel @Inject constructor(
     private val repository: CurrencyInfoRepository
 ) : ViewModel() {
+    private var ratesAtSpecifiedDate: Rates? = null
     private var amountBeingConverted: Int = 0
     private val FIRST_AMOUNT = 111
     private val SECOND_AMOUNT = 222
@@ -37,7 +38,8 @@ class ConverterViewModel @Inject constructor(
     private val _firstEtAmount = MutableLiveData<Double>()
     private val _secondEtAmount = MutableLiveData<Double>()
     private val _secondEtAmountHint = MutableLiveData<Double>()
-    private val _date = MutableLiveData<String>()
+    private val _currentDate = MutableLiveData<String>()
+    private val _dateOfCurrentRates = MutableLiveData<String>()
     private val _networkError = MutableLiveData<NoNetworkEvent>()
     private val _isRefreshing = MutableLiveData<Boolean>()
 
@@ -50,7 +52,7 @@ class ConverterViewModel @Inject constructor(
         getSupportedCurrencies()
         EventBus.getDefault().register(this)
         getRatesAtDate("")
-        _date.value =
+        _currentDate.value =
             getCurrentDate()
     }
 
@@ -88,6 +90,10 @@ class ConverterViewModel @Inject constructor(
         get() = _networkError
     val isRefreshing: LiveData<Boolean>
         get() = _isRefreshing
+    val dateOfSpecifiedRates: LiveData<String>
+        get() = MutableLiveData<String>().apply {
+            this.value = ratesAtSpecifiedDate?.timeStamp?.fromTimestampToStringForDisplay()
+        }
 
 
     @Subscribe
@@ -147,9 +153,14 @@ class ConverterViewModel @Inject constructor(
      */
     @Subscribe
     fun onRatesReceivedFromFirebase(ratesEvent: GetRatesFromFireBaseEvent) {
-        _isRefreshing.value = false
         repository.addRatesToRealmDatabase(ratesEvent.ratesObject)
-        updateRatesData(ratesEvent.ratesObject)
+        onRatesReceived(ratesEvent.ratesObject)
+    }
+
+    private fun onRatesReceived(ratesObject: Rates) {
+        _isRefreshing.value = false
+        ratesAtSpecifiedDate = ratesObject
+        updateRatesData(ratesObject)
         convertFirstAmount()
     }
 
@@ -160,12 +171,9 @@ class ConverterViewModel @Inject constructor(
      */
     @Subscribe
     fun onRatesReceivedFromFixerAPI(ratesEvent: GetRatesFromFixerApiEvent) {
-        _isRefreshing.value = false
-
         // Todo: handle API call errors. E.g for simulation, wrong API key or wrong date.
         repository.cacheRatesData(ratesEvent.getResponse()!!)
-        updateRatesData(ratesEvent.getResponse()!!)
-        convertFirstAmount()
+        onRatesReceived(ratesEvent.getResponse()!!)
     }
 
     /**
@@ -174,9 +182,7 @@ class ConverterViewModel @Inject constructor(
      */
     @Subscribe
     fun onRatesReceivedFromRealm(ratesEvent: GetRatesFromRealmEvent) {
-        _isRefreshing.value = false
-        updateRatesData(ratesEvent.ratesObject)
-        convertFirstAmount()
+        onRatesReceived(ratesEvent.ratesObject)
     }
 
     /**
@@ -216,8 +222,7 @@ class ConverterViewModel @Inject constructor(
 
     private fun convert() {
         if (rates.value != null) {
-            if (_rates.value!!.containsKey(_date.value!!)) {
-                val ratesAtSpecifiedDate = _rates.value!![_date.value!!]
+            if (_rates.value!!.containsKey(_currentDate.value!!)) {
                 var fromCurrencyValue = 0.0
                 var toCurrencyValue = 0.0
 
@@ -226,7 +231,7 @@ class ConverterViewModel @Inject constructor(
                         fromCurrencyValue =
                             ratesAtSpecifiedDate!!.rates[_firstCurrency.value]!!.toDouble()
                         toCurrencyValue =
-                            ratesAtSpecifiedDate.rates[_secondCurrency.value]!!.toDouble()
+                            ratesAtSpecifiedDate!!.rates[_secondCurrency.value]!!.toDouble()
 
                         _secondEtAmount.value =
                             amountToBeConverted * toCurrencyValue / fromCurrencyValue
@@ -237,7 +242,7 @@ class ConverterViewModel @Inject constructor(
                         fromCurrencyValue =
                             ratesAtSpecifiedDate!!.rates[_secondCurrency.value]!!.toDouble()
                         toCurrencyValue =
-                            ratesAtSpecifiedDate.rates[_firstCurrency.value]!!.toDouble()
+                            ratesAtSpecifiedDate!!.rates[_firstCurrency.value]!!.toDouble()
 
                         _firstEtAmount.value =
                             amountToBeConverted * toCurrencyValue / fromCurrencyValue
@@ -248,7 +253,7 @@ class ConverterViewModel @Inject constructor(
                         fromCurrencyValue =
                             ratesAtSpecifiedDate!!.rates[_firstCurrency.value]!!.toDouble()
                         toCurrencyValue =
-                            ratesAtSpecifiedDate.rates[_secondCurrency.value]!!.toDouble()
+                            ratesAtSpecifiedDate!!.rates[_secondCurrency.value]!!.toDouble()
 
                         _secondEtAmountHint.value =
                             amountToBeConverted * toCurrencyValue / fromCurrencyValue
@@ -257,9 +262,9 @@ class ConverterViewModel @Inject constructor(
                     }
                 }
             } else
-                getRatesAtDate(_date.value!!)
+                getRatesAtDate(_currentDate.value!!)
         } else
-            getRatesAtDate(_date.value!!)
+            getRatesAtDate(_currentDate.value!!)
     }
 
     fun setFirstEtAmountAndConvert(amount: Double) {
@@ -311,4 +316,13 @@ class ConverterViewModel @Inject constructor(
     }
 
 
+}
+
+/**
+ * Converts a timestamp to string formatted for display
+ * @return Formatted string or null if something is wrong.
+ */
+private fun String.fromTimestampToStringForDisplay(): String {
+    // Todo: implement
+    return "7th Jan, 2020. 01:00 GMT+1"
 }

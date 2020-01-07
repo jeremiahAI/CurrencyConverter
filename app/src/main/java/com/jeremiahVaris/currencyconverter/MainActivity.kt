@@ -110,6 +110,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             showSnackBar("Please check your internet connection", true)
         })
 
+        viewModel.dateOfSpecifiedRates.observe(this, Observer {
+            it?.let { lastUpdatedTv.text = "Last Updated: $it" }
+
+        })
+
     }
 
     private fun showSnackBar(message: String, static: Boolean) {
