@@ -46,7 +46,6 @@ abstract class BaseResponseEvent<T> {
         this.responseCode = responseCode
     }
 
-    // Todo: confirm necessity of isCancelled
     /**
      * Returns true if request has been canceled.
      *

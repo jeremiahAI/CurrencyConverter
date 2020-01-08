@@ -1,3 +1,3 @@
 package com.jeremiahVaris.currencyconverter.rest.core.base
 
-class NoNetworkEvent(var t: Throwable)
+class NetworkFailureEvent<T>(var throwable: Throwable, var event: BaseResponseEvent<T>?)

@@ -1,6 +1,6 @@
 package com.jeremiahVaris.currencyconverter.rest.core
 
-import com.jeremiahVaris.currencyconverter.rest.core.base.NoNetworkEvent
+import com.jeremiahVaris.currencyconverter.rest.core.base.NetworkFailureEvent
 import org.greenrobot.eventbus.EventBus
 import retrofit2.Call
 import retrofit2.Callback
@@ -23,14 +23,12 @@ class RestCallback<T>(private val restRequest: RestRequest<T>?) : Callback<T> {
 
     override fun onFailure(call: Call<T>, t: Throwable) {
         if (restRequest != null && !call.isCanceled) {
-            postEvent()
+            postNetworkFailureEvent(t)
         }
-
-        if (t is NoConnectivityException) postNoNetworkEvent(t)
     }
 
-    private fun postNoNetworkEvent(throwable: Throwable) {
-        EventBus.getDefault().post(NoNetworkEvent(throwable))
+    private fun postNetworkFailureEvent(throwable: Throwable) {
+        EventBus.getDefault().post(NetworkFailureEvent(throwable, restRequest?.baseResponseEvent))
     }
 
     /**

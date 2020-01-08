@@ -12,7 +12,8 @@ import com.jeremiahVaris.currencyconverter.repository.events.GetRatesFromRealmEv
 import com.jeremiahVaris.currencyconverter.repository.events.GetSupportedCurrenciesEvent
 import com.jeremiahVaris.currencyconverter.repository.model.Currencies
 import com.jeremiahVaris.currencyconverter.repository.model.Rates
-import com.jeremiahVaris.currencyconverter.rest.core.base.NoNetworkEvent
+import com.jeremiahVaris.currencyconverter.rest.core.NoConnectivityException
+import com.jeremiahVaris.currencyconverter.rest.core.base.NetworkFailureEvent
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import java.text.SimpleDateFormat
@@ -41,7 +42,7 @@ class ConverterViewModel @Inject constructor(
     private val _secondEtAmountHint = MutableLiveData<Double>()
     private val _currentDate = MutableLiveData<String>()
     private val _dateOfSpecifiedRates = MutableLiveData<String>()
-    private val _networkError = MutableLiveData<NoNetworkEvent>()
+    private val _networkError = MutableLiveData<String>()
     private val _isRefreshing = MutableLiveData<Boolean>()
 
 
@@ -75,7 +76,7 @@ class ConverterViewModel @Inject constructor(
         get() = _currencyList.value?.currencyList?.get(_firstCurrency.value)
     val secondCurrencyFullName: String?
         get() = _currencyList.value?.currencyList?.get(_secondCurrency.value)
-    val networkError: LiveData<NoNetworkEvent>
+    val networkError: LiveData<String>
         get() = _networkError
     val isRefreshing: LiveData<Boolean>
         get() = _isRefreshing
@@ -88,6 +89,7 @@ class ConverterViewModel @Inject constructor(
     @Subscribe
     fun onCurrenciesListReceived(currencies: Currencies) {
         _currencyList.value = currencies
+        getLatestRates()
     }
 
 
@@ -97,8 +99,8 @@ class ConverterViewModel @Inject constructor(
     fun getLatestRates() {
         // Todo: handle no internet case
         // Todo: handle currencies not yet loaded case.
-        _currencyList.value?.let { repository.getLatestRates(it.convertToString()) }
-            ?: repository.getSupportedCurrencies()
+        if (_currencyList.value != null) _currencyList.value?.let { repository.getLatestRates(it.convertToString()) }
+        else repository.getSupportedCurrencies()
 
     }
 
@@ -179,8 +181,9 @@ class ConverterViewModel @Inject constructor(
      * @param ratesEvent Event wrapper containing [Rates] object.
      */
     @Subscribe
-    fun onNoNetworkErrorReceived(noNetworkEvent: NoNetworkEvent) {
-        _networkError.value = noNetworkEvent
+    fun onNetworkErrorReceived(networkFailureEvent: NetworkFailureEvent<GetSupportedCurrenciesEvent>) {
+        if (networkFailureEvent.throwable is NoConnectivityException) _networkError.value =
+            networkFailureEvent.throwable.message
     }
 
     /**
@@ -321,7 +324,6 @@ class ConverterViewModel @Inject constructor(
  * @return Formatted string or an empty string if something is wrong.
  */
 private fun String.fromTimestampToStringForDisplay(): String {
-    // Todo: implement
     return try {
         val sdf = SimpleDateFormat("dd MMM, yyyy. hh:mm aaa z")
         val date = Date(this.toLong() * 1000)
