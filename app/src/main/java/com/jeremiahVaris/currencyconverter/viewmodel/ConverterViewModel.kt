@@ -138,6 +138,25 @@ class ConverterViewModel @Inject constructor(
     }
 
     /**
+     * Called when [getSupportedCurrencies] call fails.
+     * @param networkFailureEvent Failure event containing event type, and throwable with error message.
+     */
+    @Subscribe
+    fun onGetSupportedCurrenciesNetworkErrorReceived(networkFailureEvent: NetworkFailureEvent<GetSupportedCurrenciesEvent>) {
+//      var x = ""
+    }
+
+    /**
+     * Called when any network call fails.
+     * @param networkFailureEvent Failure event containing event type, and throwable with error message.
+     */
+    @Subscribe
+    fun onNetworkErrorReceived(networkFailureEvent: NetworkFailureEvent<Any?>) {
+        if (networkFailureEvent.throwable is NoConnectivityException) _networkError.value =
+            networkFailureEvent.throwable.message
+    }
+
+    /**
      * Called when [Rates] are retrieved from FireBase Database. Caches rate data in Realm, updates viewModel data
      * and calls the [convert] function.
      * @param ratesEvent Event wrapper containing [Rates] object.
@@ -176,15 +195,6 @@ class ConverterViewModel @Inject constructor(
         onRatesReceived(ratesEvent.ratesObject)
     }
 
-    /**
-     * Called when [Rates] are retrieved from Realm Database. Updates viewModel data and calls [convert].
-     * @param ratesEvent Event wrapper containing [Rates] object.
-     */
-    @Subscribe
-    fun onNetworkErrorReceived(networkFailureEvent: NetworkFailureEvent<GetSupportedCurrenciesEvent>) {
-        if (networkFailureEvent.throwable is NoConnectivityException) _networkError.value =
-            networkFailureEvent.throwable.message
-    }
 
     /**
      * Updates the [Rates] data contained in this viewModel in [_rates]
