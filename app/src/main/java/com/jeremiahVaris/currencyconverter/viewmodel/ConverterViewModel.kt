@@ -3,6 +3,7 @@ package com.jeremiahVaris.currencyconverter.viewmodel
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import com.jeremiahVaris.currencyconverter.repository.CurrencyInfoRepository
 import com.jeremiahVaris.currencyconverter.repository.events.GetRatesFromFireBaseEvent
@@ -22,7 +23,7 @@ import javax.inject.Inject
 class ConverterViewModel @Inject constructor(
     private val repository: CurrencyInfoRepository
 ) : ViewModel() {
-    private var ratesAtSpecifiedDate: Rates? = null
+    private var ratesAtSpecifiedDate = MutableLiveData<Rates>()
     private var amountBeingConverted: Int = 0
     private val FIRST_AMOUNT = 111
     private val SECOND_AMOUNT = 222
@@ -39,7 +40,7 @@ class ConverterViewModel @Inject constructor(
     private val _secondEtAmount = MutableLiveData<Double>()
     private val _secondEtAmountHint = MutableLiveData<Double>()
     private val _currentDate = MutableLiveData<String>()
-    private val _dateOfCurrentRates = MutableLiveData<String>()
+    private val _dateOfSpecifiedRates = MutableLiveData<String>()
     private val _networkError = MutableLiveData<NoNetworkEvent>()
     private val _isRefreshing = MutableLiveData<Boolean>()
 
@@ -60,18 +61,6 @@ class ConverterViewModel @Inject constructor(
         repository.getSupportedCurrencies()
     }
 
-    /**
-     * @return Current date in yyyy-MM-dd format.
-     */
-    private fun getCurrentDate(): String {
-        val c = Calendar.getInstance().time
-
-        val df = SimpleDateFormat("yyyy-MM-dd")
-        val formattedDate: String = df.format(c)
-        return formattedDate
-    }
-
-
     val currencyList: LiveData<Currencies>
         get() = _currencyList
     val rates: LiveData<TreeMap<String, Rates>>
@@ -91,8 +80,8 @@ class ConverterViewModel @Inject constructor(
     val isRefreshing: LiveData<Boolean>
         get() = _isRefreshing
     val dateOfSpecifiedRates: LiveData<String>
-        get() = MutableLiveData<String>().apply {
-            this.value = ratesAtSpecifiedDate?.timeStamp?.fromTimestampToStringForDisplay()
+        get() = Transformations.map(ratesAtSpecifiedDate) { rates ->
+            rates.timeStamp.fromTimestampToStringForDisplay()
         }
 
 
@@ -159,7 +148,7 @@ class ConverterViewModel @Inject constructor(
 
     private fun onRatesReceived(ratesObject: Rates) {
         _isRefreshing.value = false
-        ratesAtSpecifiedDate = ratesObject
+        ratesAtSpecifiedDate.value = ratesObject
         updateRatesData(ratesObject)
         convertFirstAmount()
     }
@@ -229,9 +218,9 @@ class ConverterViewModel @Inject constructor(
                 when (amountBeingConverted) {
                     FIRST_AMOUNT -> {
                         fromCurrencyValue =
-                            ratesAtSpecifiedDate!!.rates[_firstCurrency.value]!!.toDouble()
+                            ratesAtSpecifiedDate.value!!.rates[_firstCurrency.value]!!.toDouble()
                         toCurrencyValue =
-                            ratesAtSpecifiedDate!!.rates[_secondCurrency.value]!!.toDouble()
+                            ratesAtSpecifiedDate.value!!.rates[_secondCurrency.value]!!.toDouble()
 
                         _secondEtAmount.value =
                             amountToBeConverted * toCurrencyValue / fromCurrencyValue
@@ -240,9 +229,9 @@ class ConverterViewModel @Inject constructor(
                     }
                     SECOND_AMOUNT -> {
                         fromCurrencyValue =
-                            ratesAtSpecifiedDate!!.rates[_secondCurrency.value]!!.toDouble()
+                            ratesAtSpecifiedDate.value!!.rates[_secondCurrency.value]!!.toDouble()
                         toCurrencyValue =
-                            ratesAtSpecifiedDate!!.rates[_firstCurrency.value]!!.toDouble()
+                            ratesAtSpecifiedDate.value!!.rates[_firstCurrency.value]!!.toDouble()
 
                         _firstEtAmount.value =
                             amountToBeConverted * toCurrencyValue / fromCurrencyValue
@@ -251,9 +240,9 @@ class ConverterViewModel @Inject constructor(
                     }
                     HINT -> {
                         fromCurrencyValue =
-                            ratesAtSpecifiedDate!!.rates[_firstCurrency.value]!!.toDouble()
+                            ratesAtSpecifiedDate.value!!.rates[_firstCurrency.value]!!.toDouble()
                         toCurrencyValue =
-                            ratesAtSpecifiedDate!!.rates[_secondCurrency.value]!!.toDouble()
+                            ratesAtSpecifiedDate.value!!.rates[_secondCurrency.value]!!.toDouble()
 
                         _secondEtAmountHint.value =
                             amountToBeConverted * toCurrencyValue / fromCurrencyValue
@@ -315,14 +304,33 @@ class ConverterViewModel @Inject constructor(
             ?: repository.getSupportedCurrencies()
     }
 
+    /**
+     * @return Current date in yyyy-MM-dd format.
+     */
+    private fun getCurrentDate(): String {
+        val c = Calendar.getInstance().time
 
+        val df = SimpleDateFormat("yyyy-MM-dd")
+        val formattedDate: String = df.format(c)
+        return formattedDate
+    }
 }
 
 /**
  * Converts a timestamp to string formatted for display
- * @return Formatted string or null if something is wrong.
+ * @return Formatted string or an empty string if something is wrong.
  */
 private fun String.fromTimestampToStringForDisplay(): String {
     // Todo: implement
-    return "7th Jan, 2020. 01:00 GMT+1"
+    return try {
+        val sdf = SimpleDateFormat("dd MMM, yyyy. hh:mm aaa z")
+        val date = Date(this.toLong() * 1000)
+        sdf.format(date)
+    } catch (e: Exception) {
+        ""
+    }
 }
+
+
+
+
