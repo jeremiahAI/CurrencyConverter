@@ -230,37 +230,50 @@ class ConverterViewModel @Inject constructor(
 
                 when (amountBeingConverted) {
                     FIRST_AMOUNT -> {
-                        fromCurrencyValue =
-                            ratesAtSpecifiedDate.value!!.rates[_firstCurrency.value]!!.toDouble()
-                        toCurrencyValue =
-                            ratesAtSpecifiedDate.value!!.rates[_secondCurrency.value]!!.toDouble()
+                        _firstCurrency.value?.let { firstCurrency ->
+                            _secondCurrency.value?.let { secondCurrency ->
+                                fromCurrencyValue =
+                                    ratesAtSpecifiedDate.value!!.rates[firstCurrency]!!.toDouble()
+                                toCurrencyValue =
+                                    ratesAtSpecifiedDate.value!!.rates[secondCurrency]!!.toDouble()
 
                         _secondEtAmount.value =
                             amountToBeConverted * toCurrencyValue / fromCurrencyValue
 
-                        Log.d("Converted value", _secondEtAmount.value.toString())
+                                Log.d("Converted value", _secondEtAmount.value.toString())
+                            }
+                        }
                     }
                     SECOND_AMOUNT -> {
-                        fromCurrencyValue =
-                            ratesAtSpecifiedDate.value!!.rates[_secondCurrency.value]!!.toDouble()
-                        toCurrencyValue =
-                            ratesAtSpecifiedDate.value!!.rates[_firstCurrency.value]!!.toDouble()
+                        _firstCurrency.value?.let { firstCurrency ->
+                            _secondCurrency.value?.let { secondCurrency ->
+                                fromCurrencyValue =
+                                    ratesAtSpecifiedDate.value!!.rates[secondCurrency]!!.toDouble()
+                                toCurrencyValue =
+                                    ratesAtSpecifiedDate.value!!.rates[firstCurrency]!!.toDouble()
 
                         _firstEtAmount.value =
                             amountToBeConverted * toCurrencyValue / fromCurrencyValue
 
-                        Log.d("Converted value", _firstEtAmount.value.toString())
+                                Log.d("Converted value", _firstEtAmount.value.toString())
+                            }
+                        }
                     }
                     HINT -> {
-                        fromCurrencyValue =
-                            ratesAtSpecifiedDate.value!!.rates[_firstCurrency.value]!!.toDouble()
-                        toCurrencyValue =
-                            ratesAtSpecifiedDate.value!!.rates[_secondCurrency.value]!!.toDouble()
+                        _firstCurrency.value?.let { firstCurrency ->
+                            _secondCurrency.value?.let { secondCurrency ->
+                                fromCurrencyValue =
+                                    ratesAtSpecifiedDate.value!!.rates[firstCurrency]!!.toDouble()
+                                toCurrencyValue =
+                                    ratesAtSpecifiedDate.value!!.rates[secondCurrency]!!.toDouble()
 
                         _secondEtAmountHint.value =
                             amountToBeConverted * toCurrencyValue / fromCurrencyValue
 
-                        Log.d("Converted value", _secondEtAmountHint.value.toString())
+                                Log.d("Converted value", _secondEtAmountHint.value.toString())
+                            }
+
+                        }
                     }
                 }
             } else
