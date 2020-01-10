@@ -3,9 +3,12 @@ package com.jeremiahVaris.currencyconverter.realmDb
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.jeremiahVaris.currencyconverter.realmDb.models.RealmCurrencyList
 import com.jeremiahVaris.currencyconverter.realmDb.models.RealmRates
 import com.jeremiahVaris.currencyconverter.repository.events.GetRatesFromRealmEvent
+import com.jeremiahVaris.currencyconverter.repository.events.GetSupportedCurrenciesFromRealmEvent
 import com.jeremiahVaris.currencyconverter.repository.hasCurrencies
+import com.jeremiahVaris.currencyconverter.repository.model.Currencies
 import com.jeremiahVaris.currencyconverter.repository.model.Rates
 import io.realm.Realm
 import org.greenrobot.eventbus.EventBus
@@ -123,6 +126,70 @@ object RealmClient {
                     && !rates.isNullOrEmpty()
         }
 
+    }
+
+    fun saveCurrencies(currencies: Currencies) {
+//        // Overwrite realm instance for this thread.
+//        val backGroundrealm = Realm.getDefaultInstance()
+
+        // Attempt to add data
+        realm.executeTransactionAsync({
+            val realmCurrencyList = RealmCurrencyList()
+                .apply {
+                    this.currencyList = Gson().toJson(currencies.currencyList)
+                }
+
+            it.copyToRealmOrUpdate(realmCurrencyList)
+        }, {
+            Log.d(TAG, "On Success: Data Written Successfully!")
+        }, {
+            Log.d(TAG, "On Error: Error in saving Data: ${it.message}")
+        })
+
+//        realm.executeTransactionAsync({ realm ->
+//
+//            with(realm.where(RealmRates::class.java).equalTo("date", ratesObject.date)) {
+//                val ratesInTreeMapFormat = convertToTreeMapFormat(this.findFirst()!!)
+//                if (isValid && ratesObject == ratesInTreeMapFormat) {
+//                    // If the record already exists for that date and is up to date
+//                    // pass
+//                } else {//
+//                    val realmRates = realm.createObject(RealmRates::class.java)
+//                    realmRates.apply {
+//                        isHistorical = ratesObject.isHistorical
+//                        date = ratesObject.date
+//                        baseCurrency = ratesObject.baseCurrency
+//                        timeStamp = ratesObject.timeStamp
+//                        this.rates = Gson().toJson(ratesObject.rates)
+//                    }
+//                }
+//            }
+//        }, {
+//            //OnSuccess
+//            Log.d(TAG, "On Success: Data Written Successfully!")
+//        }, {
+//            //OnFailure
+//            Log.d(TAG, "On Error: Error in saving Data: ${it.message}")
+
+    }
+
+    fun getCurrencies(): Boolean {
+        val currenciesFromRealm = realm.where(RealmCurrencyList::class.java).findFirst()
+
+        // Post result if available
+        return if (currenciesFromRealm != null) {
+            EventBus.getDefault().post(
+                GetSupportedCurrenciesFromRealmEvent(
+                    Currencies().apply {
+                        currencyList = Gson().fromJson(
+                            currenciesFromRealm.currencyList,
+                            object : TypeToken<TreeMap<String, String>>() {}.type
+                        )
+                    }
+                )
+            )
+            true
+        } else false
     }
 
 

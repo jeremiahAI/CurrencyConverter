@@ -6,10 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import com.jeremiahVaris.currencyconverter.repository.CurrencyInfoRepository
-import com.jeremiahVaris.currencyconverter.repository.events.GetRatesFromFireBaseEvent
-import com.jeremiahVaris.currencyconverter.repository.events.GetRatesFromFixerApiEvent
-import com.jeremiahVaris.currencyconverter.repository.events.GetRatesFromRealmEvent
-import com.jeremiahVaris.currencyconverter.repository.events.GetSupportedCurrenciesEvent
+import com.jeremiahVaris.currencyconverter.repository.events.*
 import com.jeremiahVaris.currencyconverter.repository.model.Currencies
 import com.jeremiahVaris.currencyconverter.repository.model.Rates
 import com.jeremiahVaris.currencyconverter.rest.core.NoConnectivityException
@@ -54,8 +51,8 @@ class ConverterViewModel @Inject constructor(
         getSupportedCurrencies()
         EventBus.getDefault().register(this)
         getRatesAtDate("")
-        _currentDate.value =
-            getCurrentDate()
+        _currentDate.value = getCurrentDate()
+        _dateOfSpecifiedRates.value = _currentDate.value
     }
 
     fun getSupportedCurrencies() {
@@ -86,13 +83,6 @@ class ConverterViewModel @Inject constructor(
         }
 
 
-    @Subscribe
-    fun onCurrenciesListReceived(currencies: Currencies) {
-        _currencyList.value = currencies
-        getLatestRates()
-    }
-
-
     /**
      * Called to get the latest rates for the current date.
      */
@@ -106,7 +96,7 @@ class ConverterViewModel @Inject constructor(
 
 
     private fun Currencies.convertToString(): String {
-        return currencyList.keys.run {
+        return currencyList!!.keys.run {
             var list = ""
             for (currency in this) {
                 list += if (list.isBlank()) currency
@@ -128,6 +118,13 @@ class ConverterViewModel @Inject constructor(
 
     }
 
+    @Subscribe
+    fun onCurrenciesListReceived(currencies: Currencies) {
+        _currencyList.value = currencies
+        repository.cacheCurrenciesList(currencies)
+        getLatestRates()
+    }
+
     /**
      * Called when a [GetSupportedCurrenciesEvent] is posted on EventBus.
      * Updates the currencies list in the ViewModel.
@@ -135,6 +132,18 @@ class ConverterViewModel @Inject constructor(
     @Subscribe
     fun updateSupportedCurrencies(supportedCurrenciesEvent: GetSupportedCurrenciesEvent) {
         _currencyList.value = supportedCurrenciesEvent.getResponse()
+        repository.cacheCurrenciesList(supportedCurrenciesEvent.getResponse()!!)
+        getLatestRates()
+    }
+
+    /**
+     * Called when [Currencies] are retrieved from Realm Database.
+     * Updates the currencies list in the ViewModel.
+     * @param ratesEvent Event wrapper containing [Rates] object.
+     */
+    @Subscribe
+    fun updateSupportedCurrencies(supportedCurrenciesEvent: GetSupportedCurrenciesFromRealmEvent) {
+        _currencyList.value = supportedCurrenciesEvent.currencies
     }
 
     /**
@@ -143,6 +152,15 @@ class ConverterViewModel @Inject constructor(
      */
     @Subscribe
     fun onGetSupportedCurrenciesNetworkErrorReceived(networkFailureEvent: NetworkFailureEvent<GetSupportedCurrenciesEvent>) {
+//      var x = ""
+    }
+
+    /**
+     * Called when [getLatestRates] call fails.
+     * @param networkFailureEvent Failure event containing event type, and throwable with error message.
+     */
+    @Subscribe
+    fun onGetLatestRatesErrorReceived(networkFailureEvent: NetworkFailureEvent<GetRatesFromFixerApiEvent>) {
 //      var x = ""
     }
 
@@ -224,7 +242,7 @@ class ConverterViewModel @Inject constructor(
 
     private fun convert() {
         if (rates.value != null) {
-            if (_rates.value!!.containsKey(_currentDate.value!!)) {
+            if (_rates.value!!.containsKey(_dateOfSpecifiedRates.value!!)) {
                 var fromCurrencyValue = 0.0
                 var toCurrencyValue = 0.0
 
@@ -237,8 +255,8 @@ class ConverterViewModel @Inject constructor(
                                 toCurrencyValue =
                                     ratesAtSpecifiedDate.value!!.rates[secondCurrency]!!.toDouble()
 
-                        _secondEtAmount.value =
-                            amountToBeConverted * toCurrencyValue / fromCurrencyValue
+                                _secondEtAmount.value =
+                                    amountToBeConverted * toCurrencyValue / fromCurrencyValue
 
                                 Log.d("Converted value", _secondEtAmount.value.toString())
                             }
@@ -252,8 +270,8 @@ class ConverterViewModel @Inject constructor(
                                 toCurrencyValue =
                                     ratesAtSpecifiedDate.value!!.rates[firstCurrency]!!.toDouble()
 
-                        _firstEtAmount.value =
-                            amountToBeConverted * toCurrencyValue / fromCurrencyValue
+                                _firstEtAmount.value =
+                                    amountToBeConverted * toCurrencyValue / fromCurrencyValue
 
                                 Log.d("Converted value", _firstEtAmount.value.toString())
                             }
@@ -267,8 +285,8 @@ class ConverterViewModel @Inject constructor(
                                 toCurrencyValue =
                                     ratesAtSpecifiedDate.value!!.rates[secondCurrency]!!.toDouble()
 
-                        _secondEtAmountHint.value =
-                            amountToBeConverted * toCurrencyValue / fromCurrencyValue
+                                _secondEtAmountHint.value =
+                                    amountToBeConverted * toCurrencyValue / fromCurrencyValue
 
                                 Log.d("Converted value", _secondEtAmountHint.value.toString())
                             }
@@ -277,9 +295,9 @@ class ConverterViewModel @Inject constructor(
                     }
                 }
             } else
-                getRatesAtDate(_currentDate.value!!)
+                getRatesAtDate(_dateOfSpecifiedRates.value!!)
         } else
-            getRatesAtDate(_currentDate.value!!)
+            getRatesAtDate(_dateOfSpecifiedRates.value!!)
     }
 
     fun setFirstEtAmountAndConvert(amount: Double) {
@@ -325,7 +343,7 @@ class ConverterViewModel @Inject constructor(
         _isRefreshing.value = true
 
         _currencyList.value?.let {
-            repository.getRatesFromNetwork(getCurrentDate(), it.convertToString())
+            repository.getRatesFromNetwork(_dateOfSpecifiedRates.value!!, it.convertToString())
         }
             ?: repository.getSupportedCurrencies()
     }

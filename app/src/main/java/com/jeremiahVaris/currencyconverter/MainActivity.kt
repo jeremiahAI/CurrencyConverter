@@ -6,6 +6,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
@@ -79,7 +80,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     private fun setViewModelObservers() {
         viewModel.currencyList.observe(this, Observer { currencies ->
             mCurrencyFlagPairList = ArrayList<CurrencyFlagPair>().apply {
-                for (currency in currencies.currencyList.keys) this.add(CurrencyFlagPair(currency))
+                for (currency in currencies.currencyList?.keys!!) this.add(CurrencyFlagPair(currency))
             }
             setSpinnerAdapters(mCurrencyFlagPairList)
         })
@@ -255,6 +256,25 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     private fun enableRealtimeConversion(checked: Boolean) {
         realtimeConversionIsEnabled = checked
 
+    }
+
+    private fun showUnableToGetRatesDialog(message: String? = null) {
+        val builder = AlertDialog.Builder(this)
+//        builder.setMessage(response.data)
+        builder.setMessage(
+            message
+                ?: "We were unable to get the latest exchange rates. Please check your internet connection."
+        )
+        builder.setTitle("Oops")
+        builder.setCancelable(false)
+
+        builder.setPositiveButton("Try Again") { p0, p1 ->
+
+            //            viewModel.onSuccessfulUploadAcknowledged()
+        }
+
+        val uploadSuccessfulDialog = builder.create()
+        uploadSuccessfulDialog.show()
     }
 }
 

@@ -8,5 +8,5 @@ import java.util.*
  */
 data class Currencies(
     @SerializedName("symbols")
-    val currencyList: TreeMap<String, String>
+    var currencyList: TreeMap<String, String>? = null
 )

@@ -48,6 +48,14 @@ class CurrencyInfoRepository @Inject constructor(
      * Result gets returned via [Eventbus]
      */
     fun getSupportedCurrencies() {
+        if (RealmClient.getCurrencies()) { // If rates exist in local database
+            Log.d(LOG_TAG, "Currencies gotten from Realm Database")
+        } else {
+            getCurrenciesFromNetwork()
+        }
+    }
+
+    private fun getCurrenciesFromNetwork() {
         apiFixerRestClient.getSupportedCurrencies()
     }
 
@@ -123,6 +131,10 @@ class CurrencyInfoRepository @Inject constructor(
 
     fun addRatesToRealmDatabase(ratesObject: Rates) {
         RealmClient.addRates(ratesObject)
+    }
+
+    fun cacheCurrenciesList(currencies: Currencies) {
+        RealmClient.saveCurrencies(currencies)
     }
 
 
