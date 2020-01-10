@@ -46,19 +46,6 @@ class ConverterViewModel @Inject constructor(
     var firstEtID = -1
     var secondEtID = -1
 
-
-    init {
-        getSupportedCurrencies()
-        EventBus.getDefault().register(this)
-        getRatesAtDate("")
-        _currentDate.value = getCurrentDate()
-        _dateOfSpecifiedRates.value = _currentDate.value
-    }
-
-    fun getSupportedCurrencies() {
-        repository.getSupportedCurrencies()
-    }
-
     val currencyList: LiveData<Currencies>
         get() = _currencyList
     val rates: LiveData<TreeMap<String, Rates>>
@@ -83,10 +70,24 @@ class ConverterViewModel @Inject constructor(
         }
 
 
+    init {
+        getSupportedCurrencies()
+        EventBus.getDefault().register(this)
+        getRatesAtDate("")
+        _currentDate.value = getCurrentDate()
+        _dateOfSpecifiedRates.value = _currentDate.value
+    }
+
+    fun getSupportedCurrencies() {
+        repository.getSupportedCurrencies()
+    }
+
+    //**** Repository getters ****//
+
     /**
      * Called to get the latest rates for the current date.
      */
-    fun getLatestRates() {
+    private fun getLatestRates() {
         // Todo: handle no internet case
         // Todo: handle currencies not yet loaded case.
         if (_currencyList.value != null) _currencyList.value?.let { repository.getLatestRates(it.convertToString()) }
@@ -94,23 +95,11 @@ class ConverterViewModel @Inject constructor(
 
     }
 
-
-    private fun Currencies.convertToString(): String {
-        return currencyList!!.keys.run {
-            var list = ""
-            for (currency in this) {
-                list += if (list.isBlank()) currency
-                else ",$currency"
-            }
-            list
-        }
-    }
-
     /**
      * Called to get the rates for the specified date.
      * @param date Date for which rates are to be gotten in YYYY-MM-DD format.
      */
-    fun getRatesAtDate(date: String) {
+    private fun getRatesAtDate(date: String) {
         // Todo: handle no internet case
         // Todo: handle currencies not yet loaded case.
         _currencyList.value?.let { repository.getRates(date, it.convertToString()) }
@@ -118,12 +107,15 @@ class ConverterViewModel @Inject constructor(
 
     }
 
-    @Subscribe
-    fun onCurrenciesListReceived(currencies: Currencies) {
-        _currencyList.value = currencies
-        repository.cacheCurrenciesList(currencies)
-        getLatestRates()
-    }
+
+    //***** Subscriptions to events *****//
+
+//    @Subscribe
+//    fun onCurrenciesListReceived(currencies: Currencies) {
+//        _currencyList.value = currencies
+//        repository.cacheCurrenciesList(currencies)
+//        getLatestRates()
+//    }
 
     /**
      * Called when a [GetSupportedCurrenciesEvent] is posted on EventBus.
@@ -144,6 +136,39 @@ class ConverterViewModel @Inject constructor(
     @Subscribe
     fun updateSupportedCurrencies(supportedCurrenciesEvent: GetSupportedCurrenciesFromRealmEvent) {
         _currencyList.value = supportedCurrenciesEvent.currencies
+    }
+
+    /**
+     * Called when [Rates] are retrieved from FireBase Database. Caches rate data in Realm, updates viewModel data
+     * and calls the [convert] function.
+     * @param ratesEvent Event wrapper containing [Rates] object.
+     */
+    @Subscribe
+    fun onRatesReceivedFromFirebase(ratesEvent: GetRatesFromFireBaseEvent) {
+        repository.addRatesToRealmDatabase(ratesEvent.ratesObject)
+        onRatesReceived(ratesEvent.ratesObject)
+    }
+
+
+    /**
+     * Called when [Rates] are retrieved from Fixer.io API. Caches rate data in Realm and FireBase, updates viewModel data
+     * and calls the [convert] function.
+     * @param ratesEvent Event wrapper containing [Rates] object.
+     */
+    @Subscribe
+    fun onRatesReceivedFromFixerAPI(ratesEvent: GetRatesFromFixerApiEvent) {
+        // Todo: handle API call errors. E.g for simulation, wrong API key or wrong date.
+        repository.cacheRatesData(ratesEvent.getResponse()!!)
+        onRatesReceived(ratesEvent.getResponse()!!)
+    }
+
+    /**
+     * Called when [Rates] are retrieved from Realm Database. Updates viewModel data and calls [convert].
+     * @param ratesEvent Event wrapper containing [Rates] object.
+     */
+    @Subscribe
+    fun onRatesReceivedFromRealm(ratesEvent: GetRatesFromRealmEvent) {
+        onRatesReceived(ratesEvent.ratesObject)
     }
 
     /**
@@ -174,16 +199,6 @@ class ConverterViewModel @Inject constructor(
             networkFailureEvent.throwable.message
     }
 
-    /**
-     * Called when [Rates] are retrieved from FireBase Database. Caches rate data in Realm, updates viewModel data
-     * and calls the [convert] function.
-     * @param ratesEvent Event wrapper containing [Rates] object.
-     */
-    @Subscribe
-    fun onRatesReceivedFromFirebase(ratesEvent: GetRatesFromFireBaseEvent) {
-        repository.addRatesToRealmDatabase(ratesEvent.ratesObject)
-        onRatesReceived(ratesEvent.ratesObject)
-    }
 
     private fun onRatesReceived(ratesObject: Rates) {
         _isRefreshing.value = false
@@ -191,28 +206,6 @@ class ConverterViewModel @Inject constructor(
         updateRatesData(ratesObject)
         convertFirstAmount()
     }
-
-    /**
-     * Called when [Rates] are retrieved from Fixer.io API. Caches rate data in Realm and FireBase, updates viewModel data
-     * and calls the [convert] function.
-     * @param ratesEvent Event wrapper containing [Rates] object.
-     */
-    @Subscribe
-    fun onRatesReceivedFromFixerAPI(ratesEvent: GetRatesFromFixerApiEvent) {
-        // Todo: handle API call errors. E.g for simulation, wrong API key or wrong date.
-        repository.cacheRatesData(ratesEvent.getResponse()!!)
-        onRatesReceived(ratesEvent.getResponse()!!)
-    }
-
-    /**
-     * Called when [Rates] are retrieved from Realm Database. Updates viewModel data and calls [convert].
-     * @param ratesEvent Event wrapper containing [Rates] object.
-     */
-    @Subscribe
-    fun onRatesReceivedFromRealm(ratesEvent: GetRatesFromRealmEvent) {
-        onRatesReceived(ratesEvent.ratesObject)
-    }
-
 
     /**
      * Updates the [Rates] data contained in this viewModel in [_rates]
@@ -227,17 +220,26 @@ class ConverterViewModel @Inject constructor(
     }
 
 
-    override fun onCleared() {
-        super.onCleared()
-        EventBus.getDefault().unregister(this)
+    fun convertFirstAmount() {
+        amountBeingConverted = FIRST_AMOUNT
+        _firstEtAmount.value?.let {
+            amountToBeConverted = it
+            convert()
+        }
     }
 
-    fun setFirstCurrency(firstCurrency: String) {
-        _firstCurrency.value = firstCurrency
+    fun convertSecondAmount() {
+        amountBeingConverted = SECOND_AMOUNT
+        _secondEtAmount.value?.let {
+            amountToBeConverted = it
+            convert()
+        }
     }
 
-    fun setSecondCurrency(secondCurrency: String) {
-        _secondCurrency.value = secondCurrency
+    fun convertHint() {
+        amountBeingConverted = HINT
+        amountToBeConverted = 1.0
+        convert()
     }
 
     private fun convert() {
@@ -300,6 +302,26 @@ class ConverterViewModel @Inject constructor(
             getRatesAtDate(_dateOfSpecifiedRates.value!!)
     }
 
+    /**
+     * Refreshes the [_rates] to get the latest value.
+     */
+    fun refresh() {
+        _isRefreshing.value = true
+
+        _currencyList.value?.let {
+            repository.getRatesFromNetwork(_dateOfSpecifiedRates.value!!, it.convertToString())
+        }
+            ?: repository.getSupportedCurrencies()
+    }
+
+    fun setFirstCurrency(firstCurrency: String) {
+        _firstCurrency.value = firstCurrency
+    }
+
+    fun setSecondCurrency(secondCurrency: String) {
+        _secondCurrency.value = secondCurrency
+    }
+
     fun setFirstEtAmountAndConvert(amount: Double) {
         if (_firstEtAmount.value != amount) {
             _firstEtAmount.value = amount
@@ -314,50 +336,22 @@ class ConverterViewModel @Inject constructor(
         }
     }
 
-    fun convertFirstAmount() {
-        amountBeingConverted = FIRST_AMOUNT
-        _firstEtAmount.value?.let {
-            amountToBeConverted = it
-            convert()
-        }
+    override fun onCleared() {
+        super.onCleared()
+        EventBus.getDefault().unregister(this)
     }
 
-    fun convertSecondAmount() {
-        amountBeingConverted = SECOND_AMOUNT
-        _secondEtAmount.value?.let {
-            amountToBeConverted = it
-            convert()
-        }
-    }
+}
 
-    fun convertHint() {
-        amountBeingConverted = HINT
-        amountToBeConverted = 1.0
-        convert()
-    }
+/**
+ * @return Current date in yyyy-MM-dd format.
+ */
+private fun getCurrentDate(): String {
+    val c = Calendar.getInstance().time
 
-    /**
-     * Refreshes the [_rates] to get the latest value.
-     */
-    fun refresh() {
-        _isRefreshing.value = true
-
-        _currencyList.value?.let {
-            repository.getRatesFromNetwork(_dateOfSpecifiedRates.value!!, it.convertToString())
-        }
-            ?: repository.getSupportedCurrencies()
-    }
-
-    /**
-     * @return Current date in yyyy-MM-dd format.
-     */
-    private fun getCurrentDate(): String {
-        val c = Calendar.getInstance().time
-
-        val df = SimpleDateFormat("yyyy-MM-dd")
-        val formattedDate: String = df.format(c)
-        return formattedDate
-    }
+    val df = SimpleDateFormat("yyyy-MM-dd")
+    val formattedDate: String = df.format(c)
+    return formattedDate
 }
 
 /**
@@ -374,6 +368,15 @@ private fun String.fromTimestampToStringForDisplay(): String {
     }
 }
 
-
+private fun Currencies.convertToString(): String {
+    return currencyList!!.keys.run {
+        var list = ""
+        for (currency in this) {
+            list += if (list.isBlank()) currency
+            else ",$currency"
+        }
+        list
+    }
+}
 
 
