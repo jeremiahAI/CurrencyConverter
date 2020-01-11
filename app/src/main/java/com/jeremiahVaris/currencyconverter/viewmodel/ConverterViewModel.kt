@@ -43,7 +43,8 @@ class ConverterViewModel @Inject constructor(
     private val _secondEtAmountHint = MutableLiveData<Double>()
     private val _currentDate = MutableLiveData<String>()
     private val _dateOfRatesInUse = MutableLiveData<String>()
-    private val _networkError = MutableLiveData<String>()
+    private val _minorNetworkError = MutableLiveData<String>()
+    private val _majorNetworkError = MutableLiveData<String>()
     private val _isRefreshing = MutableLiveData<Boolean>()
 
 
@@ -64,8 +65,10 @@ class ConverterViewModel @Inject constructor(
         get() = _currencyList.value?.currencyList?.get(_firstCurrency.value)
     val secondCurrencyFullName: String?
         get() = _currencyList.value?.currencyList?.get(_secondCurrency.value)
-    val networkError: LiveData<String>
-        get() = _networkError
+    val minorNetworkError: LiveData<String>
+        get() = _minorNetworkError
+    val majorNetworkError: LiveData<String>
+        get() = _majorNetworkError
     val isRefreshing: LiveData<Boolean>
         get() = _isRefreshing
     val dateOfRatesInUse: LiveData<String>
@@ -94,12 +97,11 @@ class ConverterViewModel @Inject constructor(
      * Called to get the latest rates for the current date.
      */
     private fun getLatestRates() {
-        // Todo: handle no internet case
-        // Todo: handle currencies not yet loaded case.
-        _currentDate.value?.also { getRatesAtDate(it, true) } ?: getRatesAtDate(
-            getCurrentDate(),
-            true
-        )
+        _isRefreshing.value = true
+        _currentDate.value?.also {
+            getRatesAtDate(it, true)
+        }
+            ?: getRatesAtDate(getCurrentDate(), true)
     }
 
     /**
@@ -107,8 +109,7 @@ class ConverterViewModel @Inject constructor(
      * @param date Date for which rates are to be gotten in YYYY-MM-DD format.
      */
     private fun getRatesAtDate(date: String, isForLatestRates: Boolean) {
-        // Todo: handle no internet case
-        // Todo: handle currencies not yet loaded case.
+        if (_dateOfRatesInUse.value == _currentDate.value) _isRefreshing.value = true
         _currencyList.value?.also {
             repository.getRates(
                 date,
@@ -190,7 +191,7 @@ class ConverterViewModel @Inject constructor(
      * @param ratesEvent Event wrapper containing [Rates] object.
      */
     @Subscribe
-    fun onAllRatesReceivedFromRealm(ratesEvent: GetAllRatesFromRealmEvent) {
+    fun onAllRatesInRealmReceived(ratesEvent: GetAllRatesFromRealmEvent) {
         ratesEvent.allRealmRatesList.forEach { (_, rates) ->
             updateRatesData(rates)
         }
@@ -207,7 +208,8 @@ class ConverterViewModel @Inject constructor(
      */
     @Subscribe
     fun onGetSupportedCurrenciesNetworkErrorReceived(networkFailureEvent: NetworkFailureEvent<GetSupportedCurrenciesEvent>) {
-//      var x = ""
+        if (_currencyList.value == null) _majorNetworkError.value =
+            networkFailureEvent.throwable.message
     }
 
     /**
@@ -216,7 +218,10 @@ class ConverterViewModel @Inject constructor(
      */
     @Subscribe
     fun onGetLatestRatesErrorReceived(networkFailureEvent: NetworkFailureEvent<GetRatesFromFixerApiEvent>) {
-//      var x = ""
+        _isRefreshing.value = false
+        if (ratesInUse.value != null) _minorNetworkError.value =
+            networkFailureEvent.throwable.message
+        else _majorNetworkError.value = networkFailureEvent.throwable.message
     }
 
     /**
@@ -225,8 +230,11 @@ class ConverterViewModel @Inject constructor(
      */
     @Subscribe
     fun onNetworkErrorReceived(networkFailureEvent: NetworkFailureEvent<Any?>) {
-        if (networkFailureEvent.throwable is NoConnectivityException) _networkError.value =
-            networkFailureEvent.throwable.message
+        if (networkFailureEvent.throwable is NoConnectivityException) {
+            if (ratesInUse.value == null) _majorNetworkError.value =
+                networkFailureEvent.throwable.message
+            else _minorNetworkError.value = networkFailureEvent.throwable.message
+        }
     }
 
     /**

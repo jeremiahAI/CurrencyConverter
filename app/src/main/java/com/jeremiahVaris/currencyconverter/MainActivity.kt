@@ -25,6 +25,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
 
+    private var errorAlertDialog: AlertDialog? = null
+
     private var mCurrencyFlagPairList: ArrayList<CurrencyFlagPair> =
         ArrayList<CurrencyFlagPair>().apply {
             this.add(userDefaultFromCurrencyFlagPair)
@@ -106,9 +108,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             swipeRefreshLayout.isRefreshing = it
         })
 
-        viewModel.networkError.observe(this, Observer {
-            // Todo: Handle offline mode
-            showSnackBar("Please check your internet connection", true)
+        viewModel.minorNetworkError.observe(this, Observer {
+            showSnackBar("Please check your internet connection to get the latest rates", true)
+        })
+        viewModel.majorNetworkError.observe(this, Observer {
+            showUnableToGetRatesDialog()
         })
 
         viewModel.dateOfRatesInUse.observe(this, Observer {
@@ -132,10 +136,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
         mySnackBar.setAction("OK") {
             mySnackBar.dismiss()
-            viewModel.getSupportedCurrencies()
+            viewModel.refresh()
         }
 
-        mySnackBar.show()
+        if (!mySnackBar.isShown) mySnackBar.show()
     }
 
     private fun updateConversionRate(convertedAmount: String) {
@@ -269,12 +273,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         builder.setCancelable(false)
 
         builder.setPositiveButton("Try Again") { p0, p1 ->
-
-            //            viewModel.onSuccessfulUploadAcknowledged()
+            viewModel.refresh()
         }
 
-        val uploadSuccessfulDialog = builder.create()
-        uploadSuccessfulDialog.show()
+        if (errorAlertDialog == null) errorAlertDialog = builder.create()
+        if (!errorAlertDialog!!.isShowing) errorAlertDialog!!.show()
     }
 }
 
