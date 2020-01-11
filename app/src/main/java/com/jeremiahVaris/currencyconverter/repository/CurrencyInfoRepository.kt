@@ -59,13 +59,7 @@ class CurrencyInfoRepository @Inject constructor(
         apiFixerRestClient.getSupportedCurrencies()
     }
 
-    /**
-     * Get latest [Rates] from either local database, FireBase, or Fixer.io API, in that order of priority.
-     * Result gets returned via [Eventbus]
-     */
-    fun getLatestRates(currencies: String) {
-        getRates(getCurrentDateAsString(), currencies)
-    }
+
 
 
     /**

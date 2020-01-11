@@ -93,9 +93,7 @@ class ConverterViewModel @Inject constructor(
     private fun getLatestRates() {
         // Todo: handle no internet case
         // Todo: handle currencies not yet loaded case.
-        if (_currencyList.value != null) _currencyList.value?.let { repository.getLatestRates(it.convertToString()) }
-        else repository.getSupportedCurrencies()
-
+        _currentDate.value?.also { getRatesAtDate(it) } ?: getRatesAtDate(getCurrentDate())
     }
 
     /**
