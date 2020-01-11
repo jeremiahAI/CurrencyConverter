@@ -1,5 +1,6 @@
 package com.jeremiahVaris.currencyconverter.viewmodel
 
+import android.os.Build
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -14,6 +15,8 @@ import com.jeremiahVaris.currencyconverter.rest.core.base.NetworkFailureEvent
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.inject.Inject
 
@@ -21,6 +24,7 @@ import javax.inject.Inject
 class ConverterViewModel @Inject constructor(
     private val repository: CurrencyInfoRepository
 ) : ViewModel() {
+    private var isConnectedToFirebase = false
     private var ratesAtSpecifiedDate = MutableLiveData<Rates>()
     private var amountBeingConverted: Int = 0
     private val FIRST_AMOUNT = 111
@@ -73,7 +77,6 @@ class ConverterViewModel @Inject constructor(
     init {
         getSupportedCurrencies()
         EventBus.getDefault().register(this)
-        getRatesAtDate("")
         _currentDate.value = getCurrentDate()
         _dateOfSpecifiedRates.value = _currentDate.value
         _dateOfSpecifiedRates.value?.let {
@@ -103,7 +106,13 @@ class ConverterViewModel @Inject constructor(
     private fun getRatesAtDate(date: String) {
         // Todo: handle no internet case
         // Todo: handle currencies not yet loaded case.
-        _currencyList.value?.let { repository.getRates(date, it.convertToString()) }
+        _currencyList.value?.also {
+            repository.getRates(
+                date,
+                it.convertToString(),
+                isConnectedToFirebase
+            )
+        }
             ?: repository.getSupportedCurrencies()
 
     }
@@ -200,6 +209,12 @@ class ConverterViewModel @Inject constructor(
             networkFailureEvent.throwable.message
     }
 
+    /**
+     * Called
+     */
+    fun onFirebaseConnectionStateReceived(firebaseConnectionStateEvent: FirebaseConnectionStateEvent) {
+        isConnectedToFirebase = firebaseConnectionStateEvent.isConnected
+    }
 
     private fun onRatesReceived(ratesObject: Rates) {
         _isRefreshing.value = false
@@ -310,7 +325,11 @@ class ConverterViewModel @Inject constructor(
         _isRefreshing.value = true
 
         _currencyList.value?.let {
-            repository.getRatesFromNetwork(_dateOfSpecifiedRates.value!!, it.convertToString())
+            repository.getRatesFromNetwork(
+                _dateOfSpecifiedRates.value!!,
+                it.convertToString(),
+                isConnectedToFirebase
+            )
         }
             ?: repository.getSupportedCurrencies()
     }
