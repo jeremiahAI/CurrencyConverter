@@ -9,22 +9,22 @@ import java.util.*
  */
 data class Rates(
     @SerializedName("timestamp")
-    val timeStamp: String = "",
+    val timeStamp: String? = "",
 
     @SerializedName("historical")
-    val isHistorical: Boolean = false,
+    val isHistorical: Boolean? = false,
 
     @SerializedName("base")
-    val baseCurrency: String = "EUR",
+    val baseCurrency: String? = "EUR",
 
     /**
      * Date at which rates are gotten, in YYYY-MM-YY format.
      */
     @SerializedName("date")
-    val date: String = "",
+    val date: String? = "",
 
     @SerializedName("rates")
-    val rates: TreeMap<String, String> = TreeMap()
+    val rates: TreeMap<String, String>? = TreeMap()
 
 
 )

@@ -25,7 +25,7 @@ class ConverterViewModel @Inject constructor(
     private val repository: CurrencyInfoRepository
 ) : ViewModel() {
     private var isConnectedToFirebase = false
-    private var ratesAtSpecifiedDate = MutableLiveData<Rates>()
+    private var ratesInUse = MutableLiveData<Rates>()
     private var amountBeingConverted: Int = 0
     private val FIRST_AMOUNT = 111
     private val SECOND_AMOUNT = 222
@@ -42,7 +42,7 @@ class ConverterViewModel @Inject constructor(
     private val _secondEtAmount = MutableLiveData<Double>()
     private val _secondEtAmountHint = MutableLiveData<Double>()
     private val _currentDate = MutableLiveData<String>()
-    private val _dateOfSpecifiedRates = MutableLiveData<String>()
+    private val _dateOfRatesInUse = MutableLiveData<String>()
     private val _networkError = MutableLiveData<String>()
     private val _isRefreshing = MutableLiveData<Boolean>()
 
@@ -68,9 +68,9 @@ class ConverterViewModel @Inject constructor(
         get() = _networkError
     val isRefreshing: LiveData<Boolean>
         get() = _isRefreshing
-    val dateOfSpecifiedRates: LiveData<String>
-        get() = Transformations.map(ratesAtSpecifiedDate) { rates ->
-            rates.timeStamp.fromTimestampToStringForDisplay()
+    val dateOfRatesInUse: LiveData<String>
+        get() = Transformations.map(ratesInUse) { rates ->
+            rates.timeStamp!!.fromTimestampToStringForDisplay()
         }
 
 
@@ -78,9 +78,9 @@ class ConverterViewModel @Inject constructor(
         getSupportedCurrencies()
         EventBus.getDefault().register(this)
         _currentDate.value = getCurrentDate()
-        _dateOfSpecifiedRates.value = _currentDate.value
-        _dateOfSpecifiedRates.value?.let {
-            getRatesAtDate(it)
+        _dateOfRatesInUse.value = _currentDate.value
+        _dateOfRatesInUse.value?.let {
+            getRatesAtDate(it, true)
         }
     }
 
@@ -96,21 +96,25 @@ class ConverterViewModel @Inject constructor(
     private fun getLatestRates() {
         // Todo: handle no internet case
         // Todo: handle currencies not yet loaded case.
-        _currentDate.value?.also { getRatesAtDate(it) } ?: getRatesAtDate(getCurrentDate())
+        _currentDate.value?.also { getRatesAtDate(it, true) } ?: getRatesAtDate(
+            getCurrentDate(),
+            true
+        )
     }
 
     /**
      * Called to get the rates for the specified date.
      * @param date Date for which rates are to be gotten in YYYY-MM-DD format.
      */
-    private fun getRatesAtDate(date: String) {
+    private fun getRatesAtDate(date: String, isForLatestRates: Boolean) {
         // Todo: handle no internet case
         // Todo: handle currencies not yet loaded case.
         _currencyList.value?.also {
             repository.getRates(
                 date,
                 it.convertToString(),
-                isConnectedToFirebase
+                isConnectedToFirebase,
+                isForLatestRates
             )
         }
             ?: repository.getSupportedCurrencies()
@@ -182,6 +186,22 @@ class ConverterViewModel @Inject constructor(
     }
 
     /**
+     * Called when all [Rates] are retrieved from Realm Database. Updates viewModel data and calls [convert].
+     * @param ratesEvent Event wrapper containing [Rates] object.
+     */
+    @Subscribe
+    fun onAllRatesReceivedFromRealm(ratesEvent: GetAllRatesFromRealmEvent) {
+        ratesEvent.allRealmRatesList.forEach { (_, rates) ->
+            updateRatesData(rates)
+        }
+        ratesEvent.allRealmRatesList.firstEntry()?.let {
+            ratesInUse.value = it.value
+            _dateOfRatesInUse.value = it.value.date
+        }
+        convertFirstAmount()
+    }
+
+    /**
      * Called when [getSupportedCurrencies] call fails.
      * @param networkFailureEvent Failure event containing event type, and throwable with error message.
      */
@@ -218,7 +238,8 @@ class ConverterViewModel @Inject constructor(
 
     private fun onRatesReceived(ratesObject: Rates) {
         _isRefreshing.value = false
-        ratesAtSpecifiedDate.value = ratesObject
+        ratesInUse.value = ratesObject
+        _dateOfRatesInUse.value = ratesObject.date
         updateRatesData(ratesObject)
         convertFirstAmount()
     }
@@ -230,8 +251,8 @@ class ConverterViewModel @Inject constructor(
     private fun updateRatesData(ratesObject: Rates) {
 
         if (_rates.value == null) {
-            _rates.value = TreeMap<String, Rates>().apply { put(ratesObject.date, ratesObject) }
-        } else _rates.value?.put(ratesObject.date, ratesObject)
+            _rates.value = TreeMap<String, Rates>().apply { put(ratesObject.date!!, ratesObject) }
+        } else _rates.value?.put(ratesObject.date!!, ratesObject)
         Log.d("Rates", _rates.value?.keys.toString())
     }
 
@@ -260,7 +281,7 @@ class ConverterViewModel @Inject constructor(
 
     private fun convert() {
         if (rates.value != null) {
-            if (_rates.value!!.containsKey(_dateOfSpecifiedRates.value!!)) {
+            if (_rates.value!!.containsKey(_dateOfRatesInUse.value!!)) {
                 var fromCurrencyValue = 0.0
                 var toCurrencyValue = 0.0
 
@@ -269,9 +290,9 @@ class ConverterViewModel @Inject constructor(
                         _firstCurrency.value?.let { firstCurrency ->
                             _secondCurrency.value?.let { secondCurrency ->
                                 fromCurrencyValue =
-                                    ratesAtSpecifiedDate.value!!.rates[firstCurrency]!!.toDouble()
+                                    ratesInUse.value!!.rates!![firstCurrency]!!.toDouble()
                                 toCurrencyValue =
-                                    ratesAtSpecifiedDate.value!!.rates[secondCurrency]!!.toDouble()
+                                    ratesInUse.value!!.rates!![secondCurrency]!!.toDouble()
 
                                 _secondEtAmount.value =
                                     amountToBeConverted * toCurrencyValue / fromCurrencyValue
@@ -284,9 +305,9 @@ class ConverterViewModel @Inject constructor(
                         _firstCurrency.value?.let { firstCurrency ->
                             _secondCurrency.value?.let { secondCurrency ->
                                 fromCurrencyValue =
-                                    ratesAtSpecifiedDate.value!!.rates[secondCurrency]!!.toDouble()
+                                    ratesInUse.value!!.rates!![secondCurrency]!!.toDouble()
                                 toCurrencyValue =
-                                    ratesAtSpecifiedDate.value!!.rates[firstCurrency]!!.toDouble()
+                                    ratesInUse.value!!.rates!![firstCurrency]!!.toDouble()
 
                                 _firstEtAmount.value =
                                     amountToBeConverted * toCurrencyValue / fromCurrencyValue
@@ -299,9 +320,9 @@ class ConverterViewModel @Inject constructor(
                         _firstCurrency.value?.let { firstCurrency ->
                             _secondCurrency.value?.let { secondCurrency ->
                                 fromCurrencyValue =
-                                    ratesAtSpecifiedDate.value!!.rates[firstCurrency]!!.toDouble()
+                                    ratesInUse.value!!.rates!![firstCurrency]!!.toDouble()
                                 toCurrencyValue =
-                                    ratesAtSpecifiedDate.value!!.rates[secondCurrency]!!.toDouble()
+                                    ratesInUse.value!!.rates!![secondCurrency]!!.toDouble()
 
                                 _secondEtAmountHint.value =
                                     amountToBeConverted * toCurrencyValue / fromCurrencyValue
@@ -313,9 +334,12 @@ class ConverterViewModel @Inject constructor(
                     }
                 }
             } else
-                getRatesAtDate(_dateOfSpecifiedRates.value!!)
+                getRatesAtDate(
+                    _dateOfRatesInUse.value!!,
+                    _dateOfRatesInUse.value == _currentDate.value
+                )
         } else
-            getRatesAtDate(_dateOfSpecifiedRates.value!!)
+            getRatesAtDate(_dateOfRatesInUse.value!!, _dateOfRatesInUse.value == _currentDate.value)
     }
 
     /**
@@ -324,9 +348,9 @@ class ConverterViewModel @Inject constructor(
     fun refresh() {
         _isRefreshing.value = true
 
-        _currencyList.value?.let {
+        _currencyList.value?.also {
             repository.getRatesFromNetwork(
-                _dateOfSpecifiedRates.value!!,
+                _dateOfRatesInUse.value!!,
                 it.convertToString(),
                 isConnectedToFirebase
             )

@@ -42,7 +42,7 @@ class CurrencyInfoRepository @Inject constructor(
      * Caches [Rates] data in FireBase database.
      */
     private fun addRatesToFireBase(rates: Rates) {
-        database.child(rates.date).setValue(rates)
+        database.child(rates.date!!).setValue(rates)
     }
 
     /**
@@ -67,15 +67,22 @@ class CurrencyInfoRepository @Inject constructor(
     /**
      * Get the [Rates] at the specified date from either local database, FireBase, or Fixer.io API, in that order of priority.
      * @param date Date in YYYY-MM-DD format
+     * @param currencies List of currencies for which exchange rates are needed
+     * @param isConnectedToFirebase Boolean that shows connectivity state
+     * @param isForLatestRates Defaults to false. If set to true and there is no rates data available for the specified date,
+     * a [GetAllRatesFromRealmEvent] is posted to the eventBus with all the previously stored rates, for the latest of them
+     * to be used while a network call is being made.
      */
     fun getRates(
         date: String,
         currencies: String,
-        isConnectedToFirebase: Boolean
+        isConnectedToFirebase: Boolean,
+        isForLatestRates: Boolean = false
     ) {
         if (RealmClient.getRates(date, currencies)) { // If rates exist in local database
             Log.d(LOG_TAG, "Rates gotten from Realm Database")
         } else {
+            if (isForLatestRates) RealmClient.getAllRates()
             getRatesFromNetwork(date, currencies, isConnectedToFirebase)
         }
     }
@@ -173,7 +180,7 @@ fun Rates.hasCurrencies(currenciesToBeCheckedFor: String): Boolean {
 
     var hasCurrencies = true
     for (currency in currenciesToBeCheckedFor.split(",")) {
-        if (!rates.keys.contains(currency)) {
+        if (!rates!!.keys.contains(currency)) {
             hasCurrencies = false
             return hasCurrencies
         }// Else move on to the next

@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.jeremiahVaris.currencyconverter.realmDb.models.RealmCurrencyList
 import com.jeremiahVaris.currencyconverter.realmDb.models.RealmRates
+import com.jeremiahVaris.currencyconverter.repository.events.GetAllRatesFromRealmEvent
 import com.jeremiahVaris.currencyconverter.repository.events.GetRatesFromRealmEvent
 import com.jeremiahVaris.currencyconverter.repository.events.GetSupportedCurrenciesFromRealmEvent
 import com.jeremiahVaris.currencyconverter.repository.hasCurrencies
@@ -29,9 +30,9 @@ object RealmClient {
 
         // Post result if available
         return if (rates != null) {
-            if (rates.isValid && convertToTreeMapFormat(rates)!!.hasCurrencies(currencies)) {
+            if (rates.isValid && convertToTreeMapFormat(rates).hasCurrencies(currencies)) {
                 // If Realm Database has all requested currencies
-                EventBus.getDefault().post(GetRatesFromRealmEvent(convertToTreeMapFormat(rates)!!))
+                EventBus.getDefault().post(GetRatesFromRealmEvent(convertToTreeMapFormat(rates)))
                 true
             } else false
         } else false
@@ -101,17 +102,18 @@ object RealmClient {
     /**
      * Converts the JSON-formatted [RealmRates] object to a TreeMap-formatted [Rates] object
      */
-    private fun convertToTreeMapFormat(ratesObject: RealmRates): Rates? {
-        return if (hasNonNullVales(ratesObject)) {
-            val ratesInTreeMapFormat = Rates(
-                ratesObject.timeStamp!!,
-                ratesObject.isHistorical!!,
-                ratesObject.baseCurrency!!,
-                ratesObject.date!!,
-                Gson().fromJson(ratesObject.rates, object : TypeToken<TreeMap<String, String>>() {}.type)
+    private fun convertToTreeMapFormat(ratesObject: RealmRates): Rates {
+        return Rates(
+            ratesObject.timeStamp,
+            ratesObject.isHistorical,
+            ratesObject.baseCurrency,
+            ratesObject.date,
+            Gson().fromJson(
+                ratesObject.rates,
+                object : TypeToken<TreeMap<String, String>>() {}.type
             )
-            ratesInTreeMapFormat
-        } else null
+        )
+
     }
 
     /**
@@ -190,6 +192,30 @@ object RealmClient {
             )
             true
         } else false
+    }
+
+    /**
+     * Posts all rates data stored in the Realm to eventBus
+     */
+    fun getAllRates() {
+        val ratesResult = realm.where(RealmRates::class.java).findAll()
+
+
+        // Post result if available
+        if (ratesResult != null) {
+            if (ratesResult.isValid) {
+                val allRealmRatesList = TreeMap<String, Rates>()
+                ratesResult.forEach { ratesData ->
+                    ratesData.date?.let { date ->
+                        allRealmRatesList.put(
+                            date,
+                            convertToTreeMapFormat(ratesData)
+                        )
+                    }
+                }
+                EventBus.getDefault().post(GetAllRatesFromRealmEvent(allRealmRatesList))
+            }
+        }
     }
 
 
