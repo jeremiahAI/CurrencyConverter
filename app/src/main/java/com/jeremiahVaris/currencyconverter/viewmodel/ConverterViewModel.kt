@@ -76,6 +76,9 @@ class ConverterViewModel @Inject constructor(
         getRatesAtDate("")
         _currentDate.value = getCurrentDate()
         _dateOfSpecifiedRates.value = _currentDate.value
+        _dateOfSpecifiedRates.value?.let {
+            getRatesAtDate(it)
+        }
     }
 
     fun getSupportedCurrencies() {
