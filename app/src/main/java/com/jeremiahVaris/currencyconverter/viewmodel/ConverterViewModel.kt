@@ -348,11 +348,17 @@ class ConverterViewModel @Inject constructor(
  * @return Current date in yyyy-MM-dd format.
  */
 private fun getCurrentDate(): String {
-    val c = Calendar.getInstance().time
-
-    val df = SimpleDateFormat("yyyy-MM-dd")
-    val formattedDate: String = df.format(c)
-    return formattedDate
+    lateinit var currentDate: String
+    currentDate = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val current = LocalDateTime.now()
+        val formatter = DateTimeFormatter.ofPattern("YYYY-MM-dd")
+        current.format(formatter)
+    } else {
+        val date = Date()
+        val formatter = SimpleDateFormat("YYYY-MM-dd")
+        formatter.format(date)
+    }
+    return currentDate
 }
 
 /**
