@@ -179,7 +179,7 @@ object RealmClient {
         val currenciesFromRealm = realm.where(RealmCurrencyList::class.java).findFirst()
 
         // Post result if available
-        return if (currenciesFromRealm != null) {
+        return if (currenciesFromRealm != null && !currenciesFromRealm.currencyList.isNullOrBlank()) {
             EventBus.getDefault().post(
                 GetSupportedCurrenciesFromRealmEvent(
                     Currencies().apply {
