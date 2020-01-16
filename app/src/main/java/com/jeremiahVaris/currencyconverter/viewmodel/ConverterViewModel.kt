@@ -427,7 +427,8 @@ private fun String.fromTimestampToStringForDisplay(): String {
 }
 
 private fun Currencies.convertToString(): String {
-    return currencyList!!.keys.run {
+    return currencyList?.let {
+        it.keys.run {
         var list = ""
         for (currency in this) {
             list += if (list.isBlank()) currency
@@ -435,6 +436,7 @@ private fun Currencies.convertToString(): String {
         }
         list
     }
+    } ?: ""
 }
 
 
