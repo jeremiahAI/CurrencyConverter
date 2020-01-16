@@ -11,7 +11,6 @@ import retrofit2.Call
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private const val ACCESS_KEY = "82a32fee5dfbe663a94843c6ead79c82"
 
 /**
  * REST client implementation of [BaseRestClient] for making HTTP calls.
@@ -33,7 +32,7 @@ class ApiFixerRestClient @Inject constructor(
      * @param currencySymbols Comma separated list of symbols of currencySymbols to be compared with base currency
      * Response type is [Rates]
      */
-    fun getLatestRates(currencySymbols: String) {
+    fun getLatestRates(currencySymbols: String, ACCESS_KEY: String) {
         val apiLatestRatesCall = mApiFixer.getLatestRates(
             ACCESS_KEY,
             currencySymbols
@@ -54,7 +53,11 @@ class ApiFixerRestClient @Inject constructor(
      * @param currencySymbols Comma separated list of symbols of currencySymbols to be compared with base currency
      * Response type is [Rates]
      */
-    fun getHistoricalRates(currencySymbols: String, date: String) {
+    fun getHistoricalRates(
+        currencySymbols: String,
+        date: String,
+        ACCESS_KEY: String
+    ) {
         val apiLatestRatesCall = mApiFixer.getHistoricalRates(
             date.substring(0, 4), // year
             date.substring(5, 7), // month
@@ -76,7 +79,7 @@ class ApiFixerRestClient @Inject constructor(
      * Invoke [ApiFixer.getSupportedCurrencies] via [Call] request.
      * Response type is [Currencies]
      */
-    fun getSupportedCurrencies() {
+    fun getSupportedCurrencies(ACCESS_KEY: String) {
         val apiLatestRatesCall = mApiFixer.getSupportedCurrencies(
             ACCESS_KEY
         )

@@ -81,10 +81,10 @@ class ConverterViewModel @Inject constructor(
         EventBus.getDefault().register(this)
         _currentDate.value = getCurrentDate()
         _dateOfRatesInUse.value = _currentDate.value
-        getSupportedCurrencies()
-        _dateOfRatesInUse.value?.let {
-            getRatesAtDate(it, true)
-        }
+//        getSupportedCurrencies()
+//        _dateOfRatesInUse.value?.let {
+//            getRatesAtDate(it, true)
+//        }
     }
 
     fun getSupportedCurrencies() {

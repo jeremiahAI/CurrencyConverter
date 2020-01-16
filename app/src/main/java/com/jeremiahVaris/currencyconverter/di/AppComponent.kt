@@ -3,6 +3,7 @@ package com.jeremiahVaris.currencyconverter.di
 import android.app.Application
 import com.jeremiahVaris.currencyconverter.ConverterApplication
 import com.jeremiahVaris.currencyconverter.di.modules.ActivityModule
+import com.jeremiahVaris.currencyconverter.di.modules.CacheModule
 import com.jeremiahVaris.currencyconverter.di.modules.NetworkModule
 import com.jeremiahVaris.currencyconverter.di.modules.PresentationModule
 import dagger.BindsInstance
@@ -16,7 +17,8 @@ import javax.inject.Singleton
         AndroidInjectionModule::class,
         ActivityModule::class,
         NetworkModule::class,
-        PresentationModule::class
+        PresentationModule::class,
+        CacheModule::class
     ]
 )
 interface AppComponent {

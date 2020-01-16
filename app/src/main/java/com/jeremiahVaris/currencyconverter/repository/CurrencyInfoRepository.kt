@@ -21,13 +21,19 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.inject.Inject
 
+
 class CurrencyInfoRepository @Inject constructor(
-    private var apiFixerRestClient: ApiFixerRestClient
+    private var apiFixerRestClient: ApiFixerRestClient,
+    private var sharedPrefsCache: SharedPrefsCache
 ) {
+    private val fireBaseCurrentAccessKeyJsonKey = "current_key"
     private val fireBaseRatesDatabasePath = "rates"
+    private val fireBaseFixerApiKeysPath = "keys"
 
     private var database = FirebaseDatabase.getInstance().reference.child(fireBaseRatesDatabasePath)
+    private var keys = FirebaseDatabase.getInstance().reference.child(fireBaseFixerApiKeysPath)
     private val LOG_TAG = "CurrencyInfoRepo"
+    private var ACCESS_KEY = ""
 
     /**
      * Caches [Rates] data in FireBase and Realm database, for fast and inexpensive lookup later.
@@ -58,7 +64,7 @@ class CurrencyInfoRepository @Inject constructor(
     }
 
     private fun getCurrenciesFromNetwork() {
-        apiFixerRestClient.getSupportedCurrencies()
+        apiFixerRestClient.getSupportedCurrencies(ACCESS_KEY)
     }
 
 
@@ -138,8 +144,11 @@ class CurrencyInfoRepository @Inject constructor(
     }
 
     private fun getRatesFromFixerApi(date: String, currencies: String) {
-        if (date == getCurrentDateAsString()) apiFixerRestClient.getLatestRates(currencies)
-        else apiFixerRestClient.getHistoricalRates(currencies, date)
+        if (date == getCurrentDateAsString()) apiFixerRestClient.getLatestRates(
+            currencies,
+            ACCESS_KEY
+        )
+        else apiFixerRestClient.getHistoricalRates(currencies, date, ACCESS_KEY)
     }
 
     /**
@@ -169,6 +178,37 @@ class CurrencyInfoRepository @Inject constructor(
 
     init {
         addFirebaseConnectionStateListener()
+        getFixerApiKey()
+    }
+
+    private fun getFixerApiKey() {
+        sharedPrefsCache.getAccessKey()?.let {
+            ACCESS_KEY = it
+        }
+
+
+        keys.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.w(LOG_TAG, "loadPost:onCancelled", databaseError.toException())
+
+            }
+
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val currentApiKey =
+                    dataSnapshot.child(fireBaseCurrentAccessKeyJsonKey).getValue(String::class.java)
+                if (currentApiKey != ACCESS_KEY) {
+                    if (currentApiKey != null) {
+                        ACCESS_KEY = currentApiKey
+                        sharedPrefsCache.saveAccessKey(currentApiKey)
+                    }
+                    val x = "" +
+                            ""
+                    ACCESS_KEY += x
+                }
+            }
+
+        })
+
     }
 
 }
