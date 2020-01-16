@@ -40,15 +40,21 @@ class CurrencyInfoRepository @Inject constructor(
      * @param rates [Rates] object containing rate data.
      */
     fun cacheRatesData(rates: Rates) {
-        addRatesToRealmDatabase(rates)
-        addRatesToFireBase(rates)
+        if (!rates.rates.isNullOrEmpty()) {
+            addRatesToRealmDatabase(rates)
+            addRatesToFireBase(rates)
+        }
     }
 
     /**
      * Caches [Rates] data in FireBase database.
      */
     private fun addRatesToFireBase(rates: Rates) {
-        database.child(rates.date!!).setValue(rates)
+        rates.date?.let {
+            if (!rates.rates.isNullOrEmpty()) {
+                database.child(it).setValue(rates)
+            }
+        }
     }
 
     /**
@@ -105,13 +111,16 @@ class CurrencyInfoRepository @Inject constructor(
             database.child(date).addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     val ratesObject = dataSnapshot.getValue(FireBaseRates::class.java)
-                    if (ratesObject != null) {// If data exists for that date in FireBase
-                        if (ratesObject.toStandardFormat().hasCurrencies(currencies))
-                            EventBus.getDefault().post(GetRatesFromFireBaseEvent(ratesObject.toStandardFormat()))
-                        else getRatesFromFixerApi(date, currencies)
-                    } else {// Else call Fixer.io API
-                        getRatesFromFixerApi(date, currencies)
-                    }
+                    if (ratesObject != null) {
+                        if (ratesObject.rates.isNullOrEmpty()) {// If data exists for that date in FireBase
+                            if (ratesObject.toStandardFormat().hasCurrencies(currencies))
+                                EventBus.getDefault().post(GetRatesFromFireBaseEvent(ratesObject.toStandardFormat()))
+                            else getRatesFromFixerApi(date, currencies)
+                        } else {// Else call Fixer.io API
+                            getRatesFromFixerApi(date, currencies)
+                        }
+                    } else getRatesFromFixerApi(date, currencies)
+
                 }
 
                 override fun onCancelled(databaseError: DatabaseError) {
@@ -169,11 +178,16 @@ class CurrencyInfoRepository @Inject constructor(
     }
 
     fun addRatesToRealmDatabase(ratesObject: Rates) {
-        RealmClient.addRates(ratesObject)
+        ratesObject.rates?.let {
+            if (!it.isNullOrEmpty()) {
+                RealmClient.addRates(ratesObject)
+            }
+        }
     }
 
     fun cacheCurrenciesList(currencies: Currencies) {
-        RealmClient.saveCurrencies(currencies)
+        if (!currencies.currencyList.isNullOrEmpty())
+            RealmClient.saveCurrencies(currencies)
     }
 
     init {

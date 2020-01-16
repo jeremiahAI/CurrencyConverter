@@ -150,7 +150,10 @@ class ConverterViewModel @Inject constructor(
      */
     @Subscribe
     fun updateSupportedCurrencies(supportedCurrenciesEvent: GetSupportedCurrenciesFromRealmEvent) {
-        _currencyList.value = supportedCurrenciesEvent.currencies
+        if (supportedCurrenciesEvent.currencies.currencyList.isNullOrEmpty()) {
+            _currencyList.value = supportedCurrenciesEvent.currencies
+            getLatestRates()
+        }
     }
 
     /**
