@@ -74,8 +74,6 @@ class CurrencyInfoRepository @Inject constructor(
     }
 
 
-
-
     /**
      * Get the [Rates] at the specified date from either local database, FireBase, or Fixer.io API, in that order of priority.
      * @param date Date in YYYY-MM-DD format
@@ -94,7 +92,9 @@ class CurrencyInfoRepository @Inject constructor(
         if (RealmClient.getRates(date, currencies)) { // If rates exist in local database
             Log.d(LOG_TAG, "Rates gotten from Realm Database")
         } else {
-            if (isForLatestRates) RealmClient.getAllRates()
+            if (isForLatestRates) {
+                RealmClient.getAllRates()
+            }
             getRatesFromNetwork(date, currencies, isConnectedToFirebase)
         }
     }
@@ -215,9 +215,6 @@ class CurrencyInfoRepository @Inject constructor(
                         ACCESS_KEY = currentApiKey
                         sharedPrefsCache.saveAccessKey(currentApiKey)
                     }
-                    val x = "" +
-                            ""
-                    ACCESS_KEY += x
                 }
             }
 
