@@ -82,7 +82,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     private fun setViewModelObservers() {
         viewModel.currencyList.observe(this, Observer { currencies ->
             mCurrencyFlagPairList = ArrayList<CurrencyFlagPair>().apply {
-                for (currency in currencies.currencyList?.keys!!) this.add(CurrencyFlagPair(currency))
+                currencies.currencyList?.keys?.forEach {
+                    this.add(CurrencyFlagPair(it))
+                }
             }
             setSpinnerAdapters(mCurrencyFlagPairList)
         })
@@ -112,6 +114,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             showSnackBar("Please check your internet connection to get the latest rates", true)
         })
         viewModel.majorNetworkError.observe(this, Observer {
+            swipeRefreshLayout.isRefreshing = false
             showUnableToGetRatesDialog()
         })
 
@@ -143,10 +146,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     }
 
     private fun updateConversionRate(convertedAmount: String) {
-        viewModel.firstCurrencyFullName?.let {
+        viewModel.firstCurrencyFullName.value?.let {
             firstCurrencyRateTv.text = "1 $it equals"
         }
-        viewModel.secondCurrencyFullName?.let {
+        viewModel.secondCurrencyFullName.value?.let {
             secondCurrencyRateTv.text = convertedAmount + " " + it
         }
 

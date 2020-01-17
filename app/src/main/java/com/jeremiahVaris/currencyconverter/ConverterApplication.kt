@@ -21,7 +21,9 @@ class ConverterApplication : Application(), HasAndroidInjector {
         DaggerAppComponent.builder().application(this).build().inject(this)
 
         Realm.init(this)
-        val config = RealmConfiguration.Builder().build()
+        val config = RealmConfiguration.Builder()
+//            .deleteRealmIfMigrationNeeded()
+            .build()
         Realm.setDefaultConfiguration(config)
     }
 

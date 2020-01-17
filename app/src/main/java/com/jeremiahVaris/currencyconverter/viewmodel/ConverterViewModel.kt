@@ -12,6 +12,7 @@ import com.jeremiahVaris.currencyconverter.repository.model.Currencies
 import com.jeremiahVaris.currencyconverter.repository.model.Rates
 import com.jeremiahVaris.currencyconverter.rest.core.NoConnectivityException
 import com.jeremiahVaris.currencyconverter.rest.core.base.NetworkFailureEvent
+import com.jeremiahVaris.currencyconverter.viewmodel.AmountTypeToBeConverted.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import java.text.SimpleDateFormat
@@ -26,10 +27,6 @@ class ConverterViewModel @Inject constructor(
 ) : ViewModel() {
     private var isConnectedToFirebase = false
     private var ratesInUse = MutableLiveData<Rates>()
-    private var amountBeingConverted: Int = 0
-    private val FIRST_AMOUNT = 111
-    private val SECOND_AMOUNT = 222
-    private val HINT = 333
     private val _currencyList = MutableLiveData<Currencies>()
     /**
      * [MutableLiveData] of [TreeMap] that stores [Rates] against [Rates.date] as key.
@@ -37,7 +34,6 @@ class ConverterViewModel @Inject constructor(
     private val _rates = MutableLiveData<TreeMap<String, Rates>>()
     private val _firstCurrency = MutableLiveData<String>()
     private val _secondCurrency = MutableLiveData<String>()
-    private var amountToBeConverted = 1.0
     private val _firstEtAmount = MutableLiveData<Double>()
     private val _secondEtAmount = MutableLiveData<Double>()
     private val _secondEtAmountHint = MutableLiveData<Double>()
@@ -61,10 +57,14 @@ class ConverterViewModel @Inject constructor(
         get() = _secondEtAmount
     val secondEtHint: LiveData<Double>
         get() = _secondEtAmountHint
-    val firstCurrencyFullName: String?
-        get() = _currencyList.value?.currencyList?.get(_firstCurrency.value)
-    val secondCurrencyFullName: String?
-        get() = _currencyList.value?.currencyList?.get(_secondCurrency.value)
+    val firstCurrencyFullName: LiveData<String>
+        get() = Transformations.map(_currencyList) { currencies ->
+            currencies?.currencyList?.get(_firstCurrency.value)
+        }
+    val secondCurrencyFullName: LiveData<String>
+        get() = Transformations.map(_currencyList) { currencies ->
+            currencies?.currencyList?.get(_secondCurrency.value)
+        }
     val minorNetworkError: LiveData<String>
         get() = _minorNetworkError
     val majorNetworkError: LiveData<String>
@@ -81,7 +81,7 @@ class ConverterViewModel @Inject constructor(
         EventBus.getDefault().register(this)
         _currentDate.value = getCurrentDate()
         _dateOfRatesInUse.value = _currentDate.value
-//        getSupportedCurrencies()
+        getSupportedCurrencies()
 //        _dateOfRatesInUse.value?.let {
 //            getRatesAtDate(it, true)
 //        }
@@ -110,6 +110,7 @@ class ConverterViewModel @Inject constructor(
      */
     private fun getRatesAtDate(date: String, isForLatestRates: Boolean) {
         if (_dateOfRatesInUse.value == _currentDate.value) _isRefreshing.value = true
+
         _currencyList.value?.also {
             repository.getRates(
                 date,
@@ -125,12 +126,6 @@ class ConverterViewModel @Inject constructor(
 
     //***** Subscriptions to events *****//
 
-//    @Subscribe
-//    fun onCurrenciesListReceived(currencies: Currencies) {
-//        _currencyList.value = currencies
-//        repository.cacheCurrenciesList(currencies)
-//        getLatestRates()
-//    }
 
     /**
      * Called when a [GetSupportedCurrenciesEvent] is posted on EventBus.
@@ -138,15 +133,23 @@ class ConverterViewModel @Inject constructor(
      */
     @Subscribe
     fun updateSupportedCurrencies(supportedCurrenciesEvent: GetSupportedCurrenciesEvent) {
-        _currencyList.value = supportedCurrenciesEvent.getResponse()
-        repository.cacheCurrenciesList(supportedCurrenciesEvent.getResponse()!!)
-        getLatestRates()
+
+        supportedCurrenciesEvent.getResponse().let {
+            if (it != null) {
+                if (!it.currencyList.isNullOrEmpty()) {
+                    _currencyList.value = supportedCurrenciesEvent.getResponse()
+                    repository.cacheCurrenciesList(it)
+                    getLatestRates()
+                } else _majorNetworkError.value = "Error retrieving currencies list."
+            } else _majorNetworkError.value = "Error retrieving currencies list."
+            // Todo: switch API keys if usage limit is reached
+        }
     }
 
     /**
      * Called when [Currencies] are retrieved from Realm Database.
      * Updates the currencies list in the ViewModel.
-     * @param ratesEvent Event wrapper containing [Rates] object.
+     * @param supportedCurrenciesEvent Event wrapper containing [Currencies] object.
      */
     @Subscribe
     fun updateSupportedCurrencies(supportedCurrenciesEvent: GetSupportedCurrenciesFromRealmEvent) {
@@ -163,8 +166,10 @@ class ConverterViewModel @Inject constructor(
      */
     @Subscribe
     fun onRatesReceivedFromFirebase(ratesEvent: GetRatesFromFireBaseEvent) {
-        repository.addRatesToRealmDatabase(ratesEvent.ratesObject)
-        onRatesReceived(ratesEvent.ratesObject)
+        if (!ratesEvent.ratesObject.rates.isNullOrEmpty()) {
+            repository.addRatesToRealmDatabase(ratesEvent.ratesObject)
+            onRatesReceived(ratesEvent.ratesObject)
+        }
     }
 
 
@@ -195,14 +200,15 @@ class ConverterViewModel @Inject constructor(
      */
     @Subscribe
     fun onAllRatesInRealmReceived(ratesEvent: GetAllRatesFromRealmEvent) {
-        ratesEvent.allRealmRatesList.forEach { (_, rates) ->
+        val allRealmRatesMap = ratesEvent.allRealmRates
+        allRealmRatesMap.forEach { (_, rates) ->
             updateRatesData(rates)
         }
-        ratesEvent.allRealmRatesList.firstEntry()?.let {
+        allRealmRatesMap.firstEntry()?.let {
             ratesInUse.value = it.value
             _dateOfRatesInUse.value = it.value.date
         }
-        convertFirstAmount()
+        convertHint()
     }
 
     /**
@@ -252,7 +258,7 @@ class ConverterViewModel @Inject constructor(
         ratesInUse.value = ratesObject
         _dateOfRatesInUse.value = ratesObject.date
         updateRatesData(ratesObject)
-        convertFirstAmount()
+        convertHint()
     }
 
     /**
@@ -269,34 +275,28 @@ class ConverterViewModel @Inject constructor(
 
 
     fun convertFirstAmount() {
-        amountBeingConverted = FIRST_AMOUNT
         _firstEtAmount.value?.let {
-            amountToBeConverted = it
-            convert()
+            convert(it, FIRST_AMOUNT)
         }
     }
 
     fun convertSecondAmount() {
-        amountBeingConverted = SECOND_AMOUNT
         _secondEtAmount.value?.let {
-            amountToBeConverted = it
-            convert()
+            convert(it, SECOND_AMOUNT)
         }
     }
 
     fun convertHint() {
-        amountBeingConverted = HINT
-        amountToBeConverted = 1.0
-        convert()
+        convert(1.0, HINT)
     }
 
-    private fun convert() {
+    private fun convert(amount: Double, amountTypeToBeConverted: AmountTypeToBeConverted) {
         if (rates.value != null) {
             if (_rates.value!!.containsKey(_dateOfRatesInUse.value!!)) {
                 var fromCurrencyValue = 0.0
                 var toCurrencyValue = 0.0
 
-                when (amountBeingConverted) {
+                when (amountTypeToBeConverted) {
                     FIRST_AMOUNT -> {
                         _firstCurrency.value?.let { firstCurrency ->
                             _secondCurrency.value?.let { secondCurrency ->
@@ -306,7 +306,7 @@ class ConverterViewModel @Inject constructor(
                                     ratesInUse.value!!.rates!![secondCurrency]!!.toDouble()
 
                                 _secondEtAmount.value =
-                                    amountToBeConverted * toCurrencyValue / fromCurrencyValue
+                                    amount * toCurrencyValue / fromCurrencyValue
 
                                 Log.d("Converted value", _secondEtAmount.value.toString())
                             }
@@ -321,7 +321,7 @@ class ConverterViewModel @Inject constructor(
                                     ratesInUse.value!!.rates!![firstCurrency]!!.toDouble()
 
                                 _firstEtAmount.value =
-                                    amountToBeConverted * toCurrencyValue / fromCurrencyValue
+                                    amount * toCurrencyValue / fromCurrencyValue
 
                                 Log.d("Converted value", _firstEtAmount.value.toString())
                             }
@@ -335,8 +335,7 @@ class ConverterViewModel @Inject constructor(
                                 toCurrencyValue =
                                     ratesInUse.value!!.rates!![secondCurrency]!!.toDouble()
 
-                                _secondEtAmountHint.value =
-                                    amountToBeConverted * toCurrencyValue / fromCurrencyValue
+                                _secondEtAmountHint.value = toCurrencyValue / fromCurrencyValue
 
                                 Log.d("Converted value", _secondEtAmountHint.value.toString())
                             }
@@ -432,14 +431,19 @@ private fun String.fromTimestampToStringForDisplay(): String {
 private fun Currencies.convertToString(): String {
     return currencyList?.let {
         it.keys.run {
-        var list = ""
-        for (currency in this) {
-            list += if (list.isBlank()) currency
-            else ",$currency"
+            var list = ""
+            for (currency in this) {
+                list += if (list.isBlank()) currency
+                else ",$currency"
+            }
+            list
         }
-        list
-    }
     } ?: ""
 }
 
 
+private enum class AmountTypeToBeConverted {
+    FIRST_AMOUNT,
+    SECOND_AMOUNT,
+    HINT
+}
