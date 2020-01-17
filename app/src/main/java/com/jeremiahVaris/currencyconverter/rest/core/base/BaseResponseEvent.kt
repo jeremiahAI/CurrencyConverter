@@ -1,5 +1,8 @@
 package com.jeremiahVaris.currencyconverter.rest.core.base
 
+import com.google.gson.Gson
+import com.google.gson.JsonObject
+
 /**
  * Event propagated when HTTP request accomplished.
  * @param T The type of the value.
@@ -7,6 +10,7 @@ package com.jeremiahVaris.currencyconverter.rest.core.base
 abstract class BaseResponseEvent<T> {
 
     private var response: T? = null
+    private var responseJsonObject: JsonObject? = null
     private var responseCode = -1
     private var isCanceled = false
 
@@ -15,8 +19,8 @@ abstract class BaseResponseEvent<T> {
      *
      * @return response data.
      */
-    fun getResponse(): T? {
-        return response
+    inline fun <reified Y> getResponse(): Y? {
+        return Gson().fromJson(getResponseJSON(), Y::class.java)
     }
 
     /**
@@ -26,6 +30,25 @@ abstract class BaseResponseEvent<T> {
      */
     fun setResponse(response: T?) {
         this.response = response
+    }
+
+    /**
+     * Get response of HTTP request.
+     *
+     * @return response data.
+     */
+    fun getResponseJSON(): JsonObject? {
+        return responseJsonObject
+    }
+
+    /**
+     * Set response of HTTP request.
+     *
+     * @param response data.
+     */
+    fun setResponseJson(response: JsonObject?) {
+        this.responseJsonObject = response
+
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.jeremiahVaris.currencyconverter.rest.fixerIo.client
 
+import com.google.gson.JsonObject
 import com.jeremiahVaris.currencyconverter.repository.events.GetRatesFromFixerApiEvent
 import com.jeremiahVaris.currencyconverter.repository.events.GetSupportedCurrenciesEvent
 import com.jeremiahVaris.currencyconverter.repository.model.Currencies
@@ -38,13 +39,13 @@ class ApiFixerRestClient @Inject constructor(
             currencySymbols
         )
 
-        val restRequest = RestRequest.Builder<Rates>()
+        val restRequest = RestRequest.Builder<JsonObject>()
             .call(apiLatestRatesCall)
             .addBaseResponseEvent(GetRatesFromFixerApiEvent())
             .shouldUseStickyIntent(true)
             .build()
 
-        call(restRequest)
+        call<JsonObject>(restRequest)
     }
 
     /**
@@ -66,13 +67,13 @@ class ApiFixerRestClient @Inject constructor(
             currencySymbols
         )
 
-        val restRequest = RestRequest.Builder<Rates>()
+        val restRequest = RestRequest.Builder<JsonObject>()
             .call(apiLatestRatesCall)
             .addBaseResponseEvent(GetRatesFromFixerApiEvent())
             .shouldUseStickyIntent(true)
             .build()
 
-        call(restRequest)
+        call<JsonObject>(restRequest)
     }
 
     /**
@@ -84,7 +85,7 @@ class ApiFixerRestClient @Inject constructor(
             ACCESS_KEY
         )
 
-        val restRequest = RestRequest.Builder<Currencies>()
+        val restRequest = RestRequest.Builder<JsonObject>()
             .call(apiLatestRatesCall)
             .addBaseResponseEvent(GetSupportedCurrenciesEvent())
             .shouldUseStickyIntent(true)
@@ -92,7 +93,7 @@ class ApiFixerRestClient @Inject constructor(
 
         // make Network call
 //        mApiFixerRestCall =
-        call(restRequest)
+        call<JsonObject>(restRequest)
     }
 
 //    /**

@@ -1,5 +1,6 @@
 package com.jeremiahVaris.currencyconverter.rest.core
 
+import com.google.gson.JsonObject
 import com.jeremiahVaris.currencyconverter.rest.core.base.NetworkFailureEvent
 import org.greenrobot.eventbus.EventBus
 import retrofit2.Call
@@ -9,19 +10,18 @@ import retrofit2.Response
 /**
  * Handler for HTTP response and performing events.
  * @param restRequest instance of [RestRequest] that holds request and response data.
- * @param T: Response model type
  */
-class RestCallback<T>(private val restRequest: RestRequest<T>?) : Callback<T> {
+class RestCallback(private val restRequest: RestRequest<JsonObject>?) : Callback<JsonObject> {
 
-    override fun onResponse(call: Call<T>, response: Response<T>) {
+    override fun onResponse(call: Call<JsonObject>, response: Response<JsonObject>) {
         if (restRequest != null && restRequest.hasBaseResponseEvent()) {
             restRequest.baseResponseEvent!!.setCode(response.code())
-            restRequest.baseResponseEvent!!.setResponse(response.body())
+            restRequest.baseResponseEvent!!.setResponseJson(response.body())
             postEvent()
         }
     }
 
-    override fun onFailure(call: Call<T>, t: Throwable) {
+    override fun onFailure(call: Call<JsonObject>, t: Throwable) {
         if (restRequest != null && !call.isCanceled) {
             postNetworkFailureEvent(t)
         }

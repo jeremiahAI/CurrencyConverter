@@ -1,5 +1,6 @@
 package com.jeremiahVaris.currencyconverter.rest.core.base
 
+import com.google.gson.JsonObject
 import com.jeremiahVaris.currencyconverter.rest.core.RestCall
 import com.jeremiahVaris.currencyconverter.rest.core.RestCallback
 import com.jeremiahVaris.currencyconverter.rest.core.RestRequest
@@ -17,7 +18,7 @@ abstract class BaseRestClient {
      * @param T: Response model type.
      * @return instance of [RestCall] which represents HTTP request.
      */
-    protected fun <T> call(restRequest: RestRequest<T>): RestCall<T> {
+    protected fun <T> call(restRequest: RestRequest<JsonObject>): RestCall {
         checkArgument(restRequest, "RestRequest argument cannot be null")
         checkArgument(restRequest.call, "RestRequest->call argument cannot be null")
 
@@ -32,7 +33,7 @@ abstract class BaseRestClient {
      *
      * @param restCall instance of [RestCall] which represents HTTP request.
      */
-    protected fun <T> cancelCall(restCall: RestCall<T>?) {
+    protected fun <T> cancelCall(restCall: RestCall?) {
         restCall?.cancel()
     }
 

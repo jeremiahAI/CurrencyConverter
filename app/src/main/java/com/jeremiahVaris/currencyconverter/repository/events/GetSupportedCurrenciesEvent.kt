@@ -1,6 +1,6 @@
 package com.jeremiahVaris.currencyconverter.repository.events
 
-import com.jeremiahVaris.currencyconverter.repository.model.Currencies
+import com.google.gson.JsonObject
 import com.jeremiahVaris.currencyconverter.rest.core.base.BaseResponseEvent
 
-class GetSupportedCurrenciesEvent : BaseResponseEvent<Currencies>()
+class GetSupportedCurrenciesEvent : BaseResponseEvent<JsonObject>()

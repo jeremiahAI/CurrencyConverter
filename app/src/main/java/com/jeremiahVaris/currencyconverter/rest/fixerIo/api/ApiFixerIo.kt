@@ -1,5 +1,6 @@
 package com.jeremiahVaris.currencyconverter.rest.fixerIo.api
 
+import com.google.gson.JsonObject
 import com.jeremiahVaris.currencyconverter.repository.model.Currencies
 import com.jeremiahVaris.currencyconverter.repository.model.Rates
 import retrofit2.Call
@@ -20,7 +21,7 @@ interface ApiFixer {
     @GET("api/symbols")
     fun getSupportedCurrencies(
         @Query("access_key") ACCESS_KEY: String
-    ): Call<Currencies>
+    ): Call<JsonObject>
 
 
     /**
@@ -32,7 +33,7 @@ interface ApiFixer {
     fun getLatestRates(
         @Query("access_key") ACCESS_KEY: String,
         @Query("symbols") currencySymbols: String
-    ): Call<Rates>
+    ): Call<JsonObject>
 
 
     /**
@@ -50,6 +51,6 @@ interface ApiFixer {
         @Path("day") day: String,
         @Query("access_key") ACCESS_KEY: String,
         @Query("symbols") currencySymbols: String
-    ): Call<Rates>
+    ): Call<JsonObject>
 
 }

@@ -134,13 +134,15 @@ class ConverterViewModel @Inject constructor(
     @Subscribe
     fun updateSupportedCurrencies(supportedCurrenciesEvent: GetSupportedCurrenciesEvent) {
 
-        supportedCurrenciesEvent.getResponse().let {
+        supportedCurrenciesEvent.getResponse<Currencies>().let {
             if (it != null) {
                 if (!it.currencyList.isNullOrEmpty()) {
                     _currencyList.value = supportedCurrenciesEvent.getResponse()
                     repository.cacheCurrenciesList(it)
                     getLatestRates()
-                } else _majorNetworkError.value = "Error retrieving currencies list."
+                } else {
+                    _majorNetworkError.value = "Error retrieving currencies list."
+                }
             } else _majorNetworkError.value = "Error retrieving currencies list."
             // Todo: switch API keys if usage limit is reached
         }

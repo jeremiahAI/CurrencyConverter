@@ -7,7 +7,7 @@ import retrofit2.Call
  * * @param call instance of a Retrofit [Call] that sends a request to a server.
  * @param callback instance of a [RestCallback] that holds a response form a server.
  */
-class RestCall<T>(private val call: Call<*>?, private val callback: RestCallback<T>?) {
+class RestCall(private val call: Call<*>?, private val callback: RestCallback?) {
 
     /**
      * Check if call has been executed.
