@@ -62,11 +62,12 @@ class CurrencyInfoRepository @Inject constructor(
      * Result gets returned via [Eventbus]
      */
     fun getSupportedCurrencies() {
-        if (RealmClient.getCurrencies()) { // If rates exist in local database
+        if (RealmClient.getCurrencies()) { // If Currencies exist in local database
             Log.d(LOG_TAG, "Currencies gotten from Realm Database")
-        } else {
-            getCurrenciesFromNetwork()
         }
+        // Refresh from network
+        getCurrenciesFromNetwork()
+
     }
 
     private fun getCurrenciesFromNetwork() {
