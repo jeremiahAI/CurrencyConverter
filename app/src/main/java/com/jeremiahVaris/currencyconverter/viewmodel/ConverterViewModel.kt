@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import com.jeremiahVaris.currencyconverter.repository.CurrencyInfoRepository
 import com.jeremiahVaris.currencyconverter.repository.events.*
 import com.jeremiahVaris.currencyconverter.repository.model.Currencies
+import com.jeremiahVaris.currencyconverter.repository.model.FixerApiError
 import com.jeremiahVaris.currencyconverter.repository.model.Rates
 import com.jeremiahVaris.currencyconverter.rest.core.NoConnectivityException
 import com.jeremiahVaris.currencyconverter.rest.core.base.NetworkFailureEvent
@@ -81,7 +82,7 @@ class ConverterViewModel @Inject constructor(
         EventBus.getDefault().register(this)
         _currentDate.value = getCurrentDate()
         _dateOfRatesInUse.value = _currentDate.value
-        getSupportedCurrencies()
+//        getSupportedCurrencies()
 //        _dateOfRatesInUse.value?.let {
 //            getRatesAtDate(it, true)
 //        }
@@ -141,10 +142,12 @@ class ConverterViewModel @Inject constructor(
                     repository.cacheCurrenciesList(it)
                     getLatestRates()
                 } else {
+                    val errorResponse = supportedCurrenciesEvent.getResponse<FixerApiError>()
+                    if (errorResponse?.error?.code == 104)
+                        repository.switchKeys()
                     _majorNetworkError.value = "Error retrieving currencies list."
                 }
             } else _majorNetworkError.value = "Error retrieving currencies list."
-            // Todo: switch API keys if usage limit is reached
         }
     }
 
@@ -155,7 +158,7 @@ class ConverterViewModel @Inject constructor(
      */
     @Subscribe
     fun updateSupportedCurrencies(supportedCurrenciesEvent: GetSupportedCurrenciesFromRealmEvent) {
-        if (supportedCurrenciesEvent.currencies.currencyList.isNullOrEmpty()) {
+        if (!supportedCurrenciesEvent.currencies.currencyList.isNullOrEmpty()) {
             _currencyList.value = supportedCurrenciesEvent.currencies
             getLatestRates()
         }
@@ -209,8 +212,8 @@ class ConverterViewModel @Inject constructor(
         allRealmRatesMap.firstEntry()?.let {
             ratesInUse.value = it.value
             _dateOfRatesInUse.value = it.value.date
+            convertHint()
         }
-        convertHint()
     }
 
     /**
@@ -220,7 +223,7 @@ class ConverterViewModel @Inject constructor(
     @Subscribe
     fun onGetSupportedCurrenciesNetworkErrorReceived(networkFailureEvent: NetworkFailureEvent<GetSupportedCurrenciesEvent>) {
         if (_currencyList.value == null) _majorNetworkError.value =
-            networkFailureEvent.throwable.message
+            networkFailureEvent.throwable?.message ?: "An error occurred"
     }
 
     /**
@@ -231,8 +234,9 @@ class ConverterViewModel @Inject constructor(
     fun onGetLatestRatesErrorReceived(networkFailureEvent: NetworkFailureEvent<GetRatesFromFixerApiEvent>) {
         _isRefreshing.value = false
         if (ratesInUse.value != null) _minorNetworkError.value =
-            networkFailureEvent.throwable.message
-        else _majorNetworkError.value = networkFailureEvent.throwable.message
+            networkFailureEvent.throwable?.message ?: "An error occurred"
+        else _majorNetworkError.value =
+            networkFailureEvent.throwable?.message ?: "An error occurred"
     }
 
     /**
@@ -243,8 +247,9 @@ class ConverterViewModel @Inject constructor(
     fun onNetworkErrorReceived(networkFailureEvent: NetworkFailureEvent<Any?>) {
         if (networkFailureEvent.throwable is NoConnectivityException) {
             if (ratesInUse.value == null) _majorNetworkError.value =
-                networkFailureEvent.throwable.message
-            else _minorNetworkError.value = networkFailureEvent.throwable.message
+                networkFailureEvent.throwable?.message ?: "An error occurred"
+            else _minorNetworkError.value =
+                networkFailureEvent.throwable?.message ?: "An error occurred"
         }
     }
 
@@ -345,13 +350,15 @@ class ConverterViewModel @Inject constructor(
                         }
                     }
                 }
-            } else
-                getRatesAtDate(
-                    _dateOfRatesInUse.value!!,
-                    _dateOfRatesInUse.value == _currentDate.value
-                )
-        } else
-            getRatesAtDate(_dateOfRatesInUse.value!!, _dateOfRatesInUse.value == _currentDate.value)
+            }
+//            else
+//                getRatesAtDate(
+//                    _dateOfRatesInUse.value!!,
+//                    _dateOfRatesInUse.value == _currentDate.value
+//                )
+        }
+//        else
+//            getRatesAtDate(_dateOfRatesInUse.value!!, _dateOfRatesInUse.value == _currentDate.value)
     }
 
     /**

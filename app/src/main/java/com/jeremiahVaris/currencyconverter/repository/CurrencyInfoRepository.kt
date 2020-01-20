@@ -13,6 +13,7 @@ import com.jeremiahVaris.currencyconverter.repository.events.GetRatesFromFixerAp
 import com.jeremiahVaris.currencyconverter.repository.model.Currencies
 import com.jeremiahVaris.currencyconverter.repository.model.FireBaseRates
 import com.jeremiahVaris.currencyconverter.repository.model.Rates
+import com.jeremiahVaris.currencyconverter.rest.core.base.NetworkFailureEvent
 import com.jeremiahVaris.currencyconverter.rest.fixerIo.client.ApiFixerRestClient
 import org.greenrobot.eventbus.EventBus
 import java.text.SimpleDateFormat
@@ -26,14 +27,27 @@ class CurrencyInfoRepository @Inject constructor(
     private var apiFixerRestClient: ApiFixerRestClient,
     private var sharedPrefsCache: SharedPrefsCache
 ) {
-    private val fireBaseCurrentAccessKeyJsonKey = "current_key"
+    // FireBase paths
+    private val fireBaseCurrentAccessKeyPath = "current_key"
+    private val switchBooleanPath = "shouldSwitch"
     private val fireBaseRatesDatabasePath = "rates"
     private val fireBaseFixerApiKeysPath = "keys"
 
     private var database = FirebaseDatabase.getInstance().reference.child(fireBaseRatesDatabasePath)
     private var keys = FirebaseDatabase.getInstance().reference.child(fireBaseFixerApiKeysPath)
     private val LOG_TAG = "CurrencyInfoRepo"
-    private var ACCESS_KEY = ""
+    private var accessKey = ""
+        get() = sharedPrefsCache.getAccessKey() ?: ""
+        set(value) {
+            field = value
+            sharedPrefsCache.saveAccessKey(value)
+        }
+    private var isKeySwitchInProgress: Boolean = false
+        get() = sharedPrefsCache.getIsKeySwitchInProgress() ?: false
+        set(value) {
+            field = value
+            sharedPrefsCache.saveIsKeySwitchInProgress(value)
+        }
 
     /**
      * Caches [Rates] data in FireBase and Realm database, for fast and inexpensive lookup later.
@@ -71,7 +85,8 @@ class CurrencyInfoRepository @Inject constructor(
     }
 
     private fun getCurrenciesFromNetwork() {
-        apiFixerRestClient.getSupportedCurrencies(ACCESS_KEY)
+        if (!accessKey.isNullOrBlank())
+            apiFixerRestClient.getSupportedCurrencies(accessKey)
     }
 
 
@@ -135,7 +150,7 @@ class CurrencyInfoRepository @Inject constructor(
 
     }
 
-    private fun addFirebaseConnectionStateListener() {
+    private fun addFireBaseConnectionStateListener() {
         val connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected")
         connectedRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -156,9 +171,9 @@ class CurrencyInfoRepository @Inject constructor(
     private fun getRatesFromFixerApi(date: String, currencies: String) {
         if (date == getCurrentDateAsString()) apiFixerRestClient.getLatestRates(
             currencies,
-            ACCESS_KEY
+            accessKey
         )
-        else apiFixerRestClient.getHistoricalRates(currencies, date, ACCESS_KEY)
+        else apiFixerRestClient.getHistoricalRates(currencies, date, accessKey)
     }
 
     /**
@@ -192,35 +207,53 @@ class CurrencyInfoRepository @Inject constructor(
     }
 
     init {
-        addFirebaseConnectionStateListener()
+        addFireBaseConnectionStateListener()
         getFixerApiKey()
     }
 
     private fun getFixerApiKey() {
         sharedPrefsCache.getAccessKey()?.let {
-            ACCESS_KEY = it
+            accessKey = it
         }
 
 
-        keys.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onCancelled(databaseError: DatabaseError) {
-                Log.w(LOG_TAG, "loadPost:onCancelled", databaseError.toException())
+        keys.child(fireBaseCurrentAccessKeyPath)
+            .addValueEventListener(object : ValueEventListener {
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.w(LOG_TAG, "loadPost:onCancelled", databaseError.toException())
 
-            }
-
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                val currentApiKey =
-                    dataSnapshot.child(fireBaseCurrentAccessKeyJsonKey).getValue(String::class.java)
-                if (currentApiKey != ACCESS_KEY) {
-                    if (currentApiKey != null) {
-                        ACCESS_KEY = currentApiKey
-                        sharedPrefsCache.saveAccessKey(currentApiKey)
-                    }
+                    postNetworkFailureEvent(Any())
                 }
-            }
 
-        })
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    val currentApiKey =
+                        dataSnapshot.getValue(String::class.java)
+                    if (currentApiKey != accessKey) {
+                        if (currentApiKey != null) {
+                            accessKey = currentApiKey
+//                            sharedPrefsCache.saveAccessKey(currentApiKey)
+                            isKeySwitchInProgress = false
+                        }
+                    }
+                    getCurrenciesFromNetwork()
+                }
 
+            })
+
+    }
+
+    private inline fun <reified T> postNetworkFailureEvent(event: T, t: Throwable? = null) {
+        EventBus.getDefault().post(NetworkFailureEvent<T>(t))
+    }
+
+    /**
+     * Triggers a FireBase Cloud function that switches the keys, if there hasn't already been a call to switch keys. To be called when the current key usage is up.
+     */
+    fun switchKeys() {
+        if (!isKeySwitchInProgress) {
+            isKeySwitchInProgress = true
+            keys.child(switchBooleanPath).setValue(true)
+        }
     }
 
 }

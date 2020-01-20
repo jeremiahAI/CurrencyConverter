@@ -9,6 +9,7 @@ import javax.inject.Inject
 class SharedPrefsCache @Inject constructor(val sharedPrefs: SharedPreferences, val gson: Gson) {
 
     private val ACCESS_KEY_KEY = "accessKey"
+    private val KEY_SWITCH_STATUS = "keySwitch"
     private var editor: SharedPreferences.Editor = sharedPrefs.edit()
 
 
@@ -51,6 +52,15 @@ class SharedPrefsCache @Inject constructor(val sharedPrefs: SharedPreferences, v
 
     fun getAccessKey(): String? {
         return fetch<String>(ACCESS_KEY_KEY)
+    }
+
+    fun getIsKeySwitchInProgress(): Boolean? {
+        return fetch<Boolean>(KEY_SWITCH_STATUS)
+    }
+
+
+    fun saveIsKeySwitchInProgress(progressStatus: Boolean?) {
+        save(progressStatus, KEY_SWITCH_STATUS)
     }
 
 
