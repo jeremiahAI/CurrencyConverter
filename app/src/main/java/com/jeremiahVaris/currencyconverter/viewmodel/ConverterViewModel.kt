@@ -58,14 +58,12 @@ class ConverterViewModel @Inject constructor(
         get() = _secondEtAmount
     val secondEtHint: LiveData<Double>
         get() = _secondEtAmountHint
-    val firstCurrencyFullName: LiveData<String>
-        get() = Transformations.map(_currencyList) { currencies ->
-            currencies?.currencyList?.get(_firstCurrency.value)
-        }
-    val secondCurrencyFullName: LiveData<String>
-        get() = Transformations.map(_currencyList) { currencies ->
-            currencies?.currencyList?.get(_secondCurrency.value)
-        }
+    val firstCurrencyFullName
+        get() = _currencyList.value?.currencyList?.get(_firstCurrency.value) ?: ""
+
+    val secondCurrencyFullName
+        get() = _currencyList.value?.currencyList?.get(_secondCurrency.value) ?: ""
+
     val minorNetworkError: LiveData<String>
         get() = _minorNetworkError
     val majorNetworkError: LiveData<String>

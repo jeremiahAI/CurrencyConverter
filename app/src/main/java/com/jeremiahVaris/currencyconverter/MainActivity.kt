@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.View.GONE
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AlertDialog
@@ -146,11 +147,14 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     }
 
     private fun updateConversionRate(convertedAmount: String) {
-        viewModel.firstCurrencyFullName.value?.let {
-            firstCurrencyRateTv.text = "1 $it equals"
-        }
-        viewModel.secondCurrencyFullName.value?.let {
-            secondCurrencyRateTv.text = convertedAmount + " " + it
+        viewModel.apply {
+            if (!firstCurrencyFullName.isBlank() && !secondCurrencyFullName.isBlank()) {
+                firstCurrencyRateTv.text = "1 $firstCurrencyFullName equals"
+                secondCurrencyRateTv.text = convertedAmount + " " + secondCurrencyFullName
+            } else {
+                firstCurrencyRateTv.visibility = GONE
+                secondCurrencyRateTv.visibility = GONE
+            }
         }
 
     }
