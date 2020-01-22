@@ -80,6 +80,7 @@ class ConverterViewModel @Inject constructor(
         EventBus.getDefault().register(this)
         _currentDate.value = getCurrentDate()
         _dateOfRatesInUse.value = _currentDate.value
+        repository.getCachedSupportedCurrencies()
 //        getSupportedCurrencies()
 //        _dateOfRatesInUse.value?.let {
 //            getRatesAtDate(it, true)
@@ -158,8 +159,21 @@ class ConverterViewModel @Inject constructor(
     fun updateSupportedCurrencies(supportedCurrenciesEvent: GetSupportedCurrenciesFromRealmEvent) {
         if (!supportedCurrenciesEvent.currencies.currencyList.isNullOrEmpty()) {
             _currencyList.value = supportedCurrenciesEvent.currencies
-            getLatestRates()
+            getLatestCachedRates()
         }
+    }
+
+    private fun getLatestCachedRates() {
+        _currencyList.value?.also {
+            _currentDate.value?.also { date ->
+
+                repository.getCachedRates(
+                    date,
+                    it.convertToString()
+                )
+            } ?: repository.getCachedRates(getCurrentDate(), it.convertToString())
+        }
+
     }
 
     /**

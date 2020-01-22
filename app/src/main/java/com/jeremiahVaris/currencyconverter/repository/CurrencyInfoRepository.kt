@@ -84,6 +84,9 @@ class CurrencyInfoRepository @Inject constructor(
 
     }
 
+    fun getCachedSupportedCurrencies() {
+        RealmClient.getCurrencies()
+    }
     private fun getCurrenciesFromNetwork() {
         if (!accessKey.isNullOrBlank())
             apiFixerRestClient.getSupportedCurrencies(accessKey)
@@ -105,7 +108,7 @@ class CurrencyInfoRepository @Inject constructor(
         isConnectedToFirebase: Boolean,
         isForLatestRates: Boolean = false
     ) {
-        if (RealmClient.getRates(date, currencies)) { // If rates exist in local database
+        if (getCachedRates(date, currencies)) { // If rates exist in local database
             Log.d(LOG_TAG, "Rates gotten from Realm Database")
         } else {
             if (isForLatestRates) {
@@ -114,6 +117,21 @@ class CurrencyInfoRepository @Inject constructor(
             getRatesFromNetwork(date, currencies, isConnectedToFirebase)
         }
     }
+
+    /**
+     * Get the [Rates] at the specified date from either local database, FireBase, or Fixer.io API, in that order of priority.
+     * @param date Date in YYYY-MM-DD format
+     * @param currencies List of currencies for which exchange rates are needed
+     * @param isConnectedToFirebase Boolean that shows connectivity state
+     * @param isForLatestRates Defaults to false. If set to true and there is no rates data available for the specified date,
+     * a [GetAllRatesFromRealmEvent] is posted to the eventBus with all the previously stored rates, for the latest of them
+     * to be used while a network call is being made.
+     */
+    fun getCachedRates(
+        date: String,
+        currencies: String
+    ): Boolean = RealmClient.getRates(date, currencies)
+
 
     /**
      * Get the [Rates] at the specified date from either FireBase, or Fixer.io API, in that order of priority.
