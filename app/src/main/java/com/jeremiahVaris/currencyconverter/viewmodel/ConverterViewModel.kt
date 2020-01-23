@@ -81,10 +81,6 @@ class ConverterViewModel @Inject constructor(
         _currentDate.value = getCurrentDate()
         _dateOfRatesInUse.value = _currentDate.value
         repository.getCachedSupportedCurrencies()
-//        getSupportedCurrencies()
-//        _dateOfRatesInUse.value?.let {
-//            getRatesAtDate(it, true)
-//        }
     }
 
     fun getSupportedCurrencies() {
