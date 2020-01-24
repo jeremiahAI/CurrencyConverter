@@ -79,6 +79,9 @@ dependencies {
 
     //Anko
     implementation 'org.jetbrains.anko:anko-common:0.9'
+
+    // Charts
+    implementation 'com.github.lecho:hellocharts-android:v1.5.8'
 }
 
 apply plugin: 'com.google.gms.google-services'
