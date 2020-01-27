@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.snackbar.Snackbar
+import com.jeremiahVaris.currencyconverter.di.RatesVisualizationFragment
 import com.jeremiahVaris.currencyconverter.di.ViewModelFactory
 import com.jeremiahVaris.currencyconverter.viewmodel.ConverterViewModel
 import dagger.android.AndroidInjection
@@ -47,6 +48,12 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             .get(ConverterViewModel::class.java)
 
         setContentView(R.layout.activity_main)
+
+        supportFragmentManager.beginTransaction().add(
+            R.id.rates_graph_container,
+            RatesVisualizationFragment()
+        ).commit()
+
 
         initViews()
         initList()

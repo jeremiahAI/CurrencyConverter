@@ -5,4 +5,7 @@
     <string name="currency_ngn">NGN</string>
     <string name="amount_placeholder">1.00</string>
     <string name="enable_realtime_conversion">Enable realtime conversion</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
