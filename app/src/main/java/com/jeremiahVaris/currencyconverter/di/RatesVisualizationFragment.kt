@@ -222,7 +222,12 @@ class RatesVisualizationFragment : Fragment() {
         if (hasAxes) {
             val axisX = Axis()
             val axisY =
-                Axis().setHasLines(true)
+                Axis()
+//                    .setHasLines(true)
+
+            axisX.textColor = Color.parseColor("#FFFFFF")
+            axisY.textColor = Color.parseColor("#FFFFFF")
+
             if (hasAxesNames) {
                 axisX.name = "Axis X"
                 axisY.name = "Axis Y"
