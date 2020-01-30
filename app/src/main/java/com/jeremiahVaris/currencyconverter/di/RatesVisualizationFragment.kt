@@ -1,11 +1,15 @@
 package com.jeremiahVaris.currencyconverter.di
 
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.*
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.jeremiahVaris.currencyconverter.R
+import com.jeremiahVaris.currencyconverter.viewmodel.ConverterViewModel
+import dagger.android.support.AndroidSupportInjection
 import kotlinx.android.synthetic.main.fragment_rates_visualization.view.*
 import lecho.lib.hellocharts.animation.ChartAnimationListener
 import lecho.lib.hellocharts.gesture.ZoomType
@@ -14,6 +18,7 @@ import lecho.lib.hellocharts.model.*
 import lecho.lib.hellocharts.util.ChartUtils
 import lecho.lib.hellocharts.view.LineChartView
 import java.util.*
+import javax.inject.Inject
 
 
 class RatesVisualizationFragment : Fragment() {
@@ -37,11 +42,19 @@ class RatesVisualizationFragment : Fragment() {
     private var pointsHaveDifferentColor = false
     private var hasGradientToTransparent = false
 
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    private lateinit var viewModel: ConverterViewModel
+
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        AndroidSupportInjection.inject(this)
+        viewModel = ViewModelProvider(this, viewModelFactory)
+            .get(ConverterViewModel::class.java)
         setHasOptionsMenu(true)
         val rootView: View =
             inflater.inflate(R.layout.fragment_rates_visualization, container, false)

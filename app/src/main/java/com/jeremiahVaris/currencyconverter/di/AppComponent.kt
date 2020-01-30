@@ -2,7 +2,7 @@ package com.jeremiahVaris.currencyconverter.di
 
 import android.app.Application
 import com.jeremiahVaris.currencyconverter.ConverterApplication
-import com.jeremiahVaris.currencyconverter.di.modules.ActivityModule
+import com.jeremiahVaris.currencyconverter.di.modules.AndroidComponentsModule
 import com.jeremiahVaris.currencyconverter.di.modules.CacheModule
 import com.jeremiahVaris.currencyconverter.di.modules.NetworkModule
 import com.jeremiahVaris.currencyconverter.di.modules.PresentationModule
@@ -15,7 +15,7 @@ import javax.inject.Singleton
 @Component(
     modules = [
         AndroidInjectionModule::class,
-        ActivityModule::class,
+        AndroidComponentsModule::class,
         NetworkModule::class,
         PresentationModule::class,
         CacheModule::class
