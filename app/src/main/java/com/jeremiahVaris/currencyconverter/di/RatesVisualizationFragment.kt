@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.jeremiahVaris.currencyconverter.R
 import com.jeremiahVaris.currencyconverter.viewmodel.ConverterViewModel
 import dagger.android.support.AndroidSupportInjection
+import kotlinx.android.synthetic.main.fragment_rates_visualization.*
 import kotlinx.android.synthetic.main.fragment_rates_visualization.view.*
 import lecho.lib.hellocharts.animation.ChartAnimationListener
 import lecho.lib.hellocharts.gesture.ZoomType
@@ -53,8 +54,9 @@ class RatesVisualizationFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         AndroidSupportInjection.inject(this)
-        viewModel = ViewModelProvider(this, viewModelFactory)
-            .get(ConverterViewModel::class.java)
+        val mainProvider = ViewModelProvider(activity!!, viewModelFactory)
+        viewModel = mainProvider.get(ConverterViewModel::class.java)
+
         setHasOptionsMenu(true)
         val rootView: View =
             inflater.inflate(R.layout.fragment_rates_visualization, container, false)
@@ -63,10 +65,22 @@ class RatesVisualizationFragment : Fragment() {
         // Generate some random values.
         generateValues()
         generateData()
+        setObservers()
+//        viewModel.initVisualization()
+
         // Disable viewport recalculations, see toggleCubic() method for more info.
         chart!!.isViewportCalculationEnabled = false
         resetViewport()
         return rootView
+    }
+
+    private fun setObservers() {
+        viewModel.chartData.observe(this, androidx.lifecycle.Observer {
+            chart?.lineChartData = it
+            no_data_view.visibility = View.GONE
+            chart?.visibility = View.VISIBLE
+        })
+
     }
 
     // MENU
