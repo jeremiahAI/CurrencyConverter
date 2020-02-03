@@ -1,5 +1,6 @@
 package com.jeremiahVaris.currencyconverter.viewmodel
 
+import android.graphics.Color
 import android.os.Build
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -14,6 +15,7 @@ import com.jeremiahVaris.currencyconverter.repository.model.Rates
 import com.jeremiahVaris.currencyconverter.rest.core.NoConnectivityException
 import com.jeremiahVaris.currencyconverter.rest.core.base.NetworkFailureEvent
 import com.jeremiahVaris.currencyconverter.viewmodel.AmountTypeToBeConverted.*
+import lecho.lib.hellocharts.model.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import java.text.SimpleDateFormat
@@ -26,6 +28,7 @@ import javax.inject.Inject
 class ConverterViewModel @Inject constructor(
     private val repository: CurrencyInfoRepository
 ) : ViewModel() {
+    private var visualizationLoopInProgress = false
     private var isConnectedToFirebase = false
     private var ratesInUse = MutableLiveData<Rates>()
     private val _currencyList = MutableLiveData<Currencies>()
@@ -43,6 +46,7 @@ class ConverterViewModel @Inject constructor(
     private val _minorNetworkError = MutableLiveData<String>()
     private val _majorNetworkError = MutableLiveData<String>()
     private val _isRefreshing = MutableLiveData<Boolean>()
+    private val _chartData = MutableLiveData<LineChartData>()
 
 
     var firstEtID = -1
@@ -63,9 +67,16 @@ class ConverterViewModel @Inject constructor(
 
     val secondCurrencyFullName
         get() = _currencyList.value?.currencyList?.get(_secondCurrency.value) ?: ""
-
+    /* Range of rates for visualization in days*/
+    var rangeOfRatesForVisualization = 5
+        set(value) {
+            field = value
+            initVisualization()
+        }/* Range of rates for visualization in days*/
     val minorNetworkError: LiveData<String>
         get() = _minorNetworkError
+    val chartData: LiveData<LineChartData>
+        get() = _chartData
     val majorNetworkError: LiveData<String>
         get() = _majorNetworkError
     val isRefreshing: LiveData<Boolean>
@@ -270,10 +281,114 @@ class ConverterViewModel @Inject constructor(
 
     private fun onRatesReceived(ratesObject: Rates) {
         _isRefreshing.value = false
-        ratesInUse.value = ratesObject
-        _dateOfRatesInUse.value = ratesObject.date
+        if (ratesInUse.value?.rates.isNullOrEmpty()) {
+            ratesInUse.value = ratesObject
+        }
+        _dateOfRatesInUse.value = ratesInUse.value?.date
         updateRatesData(ratesObject)
         convertHint()
+        sendChartDataToView()
+    }
+
+    private fun sendChartDataToView() {
+        if (hasAllRatesInRange(rangeOfRatesForVisualization)) {
+            visualizationLoopInProgress = false
+            _firstCurrency.value?.let { firstCurrency ->
+                _secondCurrency.value?.let { secondCurrency ->
+                    _chartData.value = getChartData(firstCurrency, secondCurrency)
+                }
+            } // Else, chart data will be sent when converting hint
+        } else if (!visualizationLoopInProgress)
+            initVisualization()
+    }
+
+    private fun getChartData(baseCurrency: String, conversionCurrency: String): LineChartData {
+
+        val lines: MutableList<Line> =
+            ArrayList()
+//        for (i in 0 until numberOfLines) {
+        val values: MutableList<PointValue> = ArrayList()
+
+        for (offset in 0 until rangeOfRatesForVisualization) {
+            values.add(getRatePointValue(baseCurrency, conversionCurrency, offset))
+        }
+        val line = Line(values)
+//        line.color = ChartUtils.COLORS[i]
+        line.color = Color.parseColor("#FFFFFF")
+        line.shape = ValueShape.CIRCLE
+        line.isCubic = false
+        line.isFilled = true
+        line.setHasLabels(false)
+//        line.setHasLabelsOnlyForSelected(hasLabelForSelected)
+        line.setHasLines(true)
+        line.setHasPoints(true)
+
+//            line.setHasGradientToTransparent(hasGradientToTransparent)
+//        if (pointsHaveDifferentColor) {
+//            line.pointColor = ChartUtils.COLORS[(i + 1) % ChartUtils.COLORS.size]
+//        }
+        lines.add(line)
+//        }
+
+        val data = LineChartData(lines)
+
+//        if (hasAxes) {
+        val axisX = Axis()
+        val axisY =
+            Axis()
+//                    .setHasLines(true)
+
+        axisX.textColor = Color.parseColor("#FFFFFF")
+        axisY.textColor = Color.parseColor("#FFFFFF")
+
+//        if (hasAxesNames) {
+//            axisX.name = "Axis X"
+//            axisY.name = "Axis Y"
+//        }
+        data.axisXBottom = axisX
+        data.axisYLeft = axisY
+//        } else {
+//            data!!.axisXBottom = null
+//            data!!.axisYLeft = null
+//        }
+        data.baseValue = Float.NEGATIVE_INFINITY
+
+        return data
+    }
+
+    private fun getRatePointValue(
+        baseCurrency: String,
+        conversionCurrency: String,
+        offset: Int
+    ): PointValue {
+        val rates = _rates.value!![getRelativeDate(_dateOfRatesInUse.value!!, offset)]
+
+        val baseCurrencyValue =
+            rates!!.rates!![baseCurrency]!!.toDouble()
+        val convertedCurrencyValue =
+            rates.rates!![conversionCurrency]!!.toDouble()
+
+        val relativeValue =
+            convertedCurrencyValue / baseCurrencyValue
+
+        return PointValue(offset.toFloat(), relativeValue.toFloat()).apply {
+            this.setLabel("test")
+        }
+    }
+
+    private fun hasAllRatesInRange(rangeInDays: Int): Boolean {
+        var hasAllRatesInRange = true
+        if (!_rates.value.isNullOrEmpty() && !_dateOfRatesInUse.value.isNullOrBlank())
+            for (day in 0 until rangeInDays) {
+                val dateToCheckFor = getRelativeDate(_dateOfRatesInUse.value!!, day)
+                if (!_rates.value!!.containsKey(dateToCheckFor)) {
+                    return false
+                }
+            }
+        else hasAllRatesInRange = false
+
+        return hasAllRatesInRange
+
     }
 
     /**
@@ -353,6 +468,7 @@ class ConverterViewModel @Inject constructor(
                                 _secondEtAmountHint.value = toCurrencyValue / fromCurrencyValue
 
                                 Log.d("Converted value", _secondEtAmountHint.value.toString())
+                                sendChartDataToView()
                             }
 
                         }
@@ -412,6 +528,31 @@ class ConverterViewModel @Inject constructor(
         EventBus.getDefault().unregister(this)
     }
 
+    fun initVisualization() {
+        if (!_dateOfRatesInUse.value.isNullOrBlank()) {
+            visualizationLoopInProgress = true
+            for (i in 0 until rangeOfRatesForVisualization) {
+                getRatesAtDate(
+                    getRelativeDate(_dateOfRatesInUse.value!!, i),
+                    false
+                )
+            }
+        }
+    }
+}
+
+/** Returns a formatted date string offset from the current Date by [offset] number of days.
+ * @param currentDate The current date
+ * @param offset Number of days to offset the current date by
+ * @return Offset date string
+ */
+private fun getRelativeDate(currentDate: String, offset: Int): String {
+    val cal = Calendar.getInstance()
+    val s = SimpleDateFormat("yyyy-MM-dd")
+    cal.time = s.parse(currentDate)
+    cal.add(Calendar.DAY_OF_MONTH, -offset)
+    val date = s.format(Date(cal.timeInMillis))
+    return date
 }
 
 /**
