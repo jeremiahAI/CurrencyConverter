@@ -18,6 +18,8 @@ import com.jeremiahVaris.currencyconverter.viewmodel.AmountTypeToBeConverted.*
 import lecho.lib.hellocharts.model.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
+import java.math.RoundingMode
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -51,6 +53,7 @@ class ConverterViewModel @Inject constructor(
 
     var firstEtID = -1
     var secondEtID = -1
+    var maxLabelChars = 6
 
     val currencyList: LiveData<Currencies>
         get() = _currencyList
@@ -308,18 +311,32 @@ class ConverterViewModel @Inject constructor(
             ArrayList()
 //        for (i in 0 until numberOfLines) {
         val values: MutableList<PointValue> = ArrayList()
+        val xAxisValues: MutableList<AxisValue> = ArrayList()
+        val yAxisValues: MutableList<AxisValue> = ArrayList()
+        var maxY: Float? = null
+        var minY: Float? = null
 
         for (offset in 0 until rangeOfRatesForVisualization) {
-            values.add(getRatePointValue(baseCurrency, conversionCurrency, offset))
+            val pointValue = getRatePointValue(baseCurrency, conversionCurrency, offset)
+            values.add(pointValue)
+            xAxisValues.add(AxisValue(pointValue.x).setLabel(pointValue.x.toString()))
+            minY = if (minY == null || minY > pointValue.y) pointValue.y else minY
+            maxY = if (maxY == null || maxY < pointValue.y) pointValue.y else maxY
+
+//            yAxisValues.add(AxisValue(pointValue.y).setLabel(pointValue.y.toString()))
+//            yAxisValues.add(AxisValue(pointValue.y))
         }
+        yAxisValues.addAll(getYAxisValues(minY, maxY))
+
         val line = Line(values)
+
 //        line.color = ChartUtils.COLORS[i]
         line.color = Color.parseColor("#FFFFFF")
         line.shape = ValueShape.CIRCLE
         line.isCubic = false
         line.isFilled = true
-        line.setHasLabels(false)
-//        line.setHasLabelsOnlyForSelected(hasLabelForSelected)
+        line.setHasLabels(true)
+        line.setHasLabelsOnlyForSelected(true)
         line.setHasLines(true)
         line.setHasPoints(true)
 
@@ -334,12 +351,14 @@ class ConverterViewModel @Inject constructor(
 
 //        if (hasAxes) {
         val axisX = Axis()
-        val axisY =
-            Axis()
-//                    .setHasLines(true)
+        val axisY = Axis()
 
         axisX.textColor = Color.parseColor("#FFFFFF")
         axisY.textColor = Color.parseColor("#FFFFFF")
+        axisX.values = xAxisValues
+        if (yAxisValues.isNotEmpty()) axisY.values = yAxisValues
+        axisY.maxLabelChars = maxLabelChars
+
 
 //        if (hasAxesNames) {
 //            axisX.name = "Axis X"
@@ -354,6 +373,57 @@ class ConverterViewModel @Inject constructor(
         data.baseValue = Float.NEGATIVE_INFINITY
 
         return data
+    }
+
+    // Todo: work on scaling down and reducing decimal places
+    private fun getYAxisValues(minY: Float?, maxY: Float?): MutableList<AxisValue> {
+        val axisValues: MutableList<AxisValue> = ArrayList()
+
+        if (minY != null && maxY != null) {
+            val range = maxY - minY
+
+            val decimalPart: String = when {
+                range.toString().contains("E-") -> { // When value is represented in exponent form
+                    convertExponentToDecimalPartRepresentation(range.toDouble())
+                }
+                else -> range.toString().substringAfter(".", "")
+            }
+
+
+            var nonZeroDecimalIndex = 0
+            for (char in decimalPart.iterator()) {
+                if (char == '0') nonZeroDecimalIndex++
+                else break
+            }
+
+            val numberFormat = NumberFormat.getInstance()
+            numberFormat.maximumFractionDigits = nonZeroDecimalIndex + 1
+            numberFormat.roundingMode = RoundingMode.HALF_UP
+            axisValues.add(AxisValue(minY).setLabel(numberFormat.format(minY.toDouble())))
+            axisValues.add(AxisValue(minY + range / 2).setLabel(numberFormat.format((minY + range / 2).toDouble())))
+            axisValues.add(
+                AxisValue(maxY).setLabel(
+                    String.format(
+                        "%.${nonZeroDecimalIndex + 1}f",
+                        maxY.toDouble()
+                    )
+                )
+            )
+            maxLabelChars = nonZeroDecimalIndex + 3
+        }
+
+
+        return axisValues
+    }
+
+    private fun convertExponentToDecimalPartRepresentation(value: Double): String {
+        val exponentString = value.toString()[value.toString().length - 1]
+        val exponent = Character.getNumericValue(exponentString)
+        var result = ""
+        repeat(exponent - 1) {
+            result += "0"
+        }
+        return result + value.toString().replace(".", "").replace("""E-\d""".toRegex(), "")
     }
 
     private fun getRatePointValue(

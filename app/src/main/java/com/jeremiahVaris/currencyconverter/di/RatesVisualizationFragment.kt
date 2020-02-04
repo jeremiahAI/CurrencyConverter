@@ -63,22 +63,25 @@ class RatesVisualizationFragment : Fragment() {
         chart = rootView.rates_chart
         chart!!.onValueTouchListener = ValueTouchListener()
         // Generate some random values.
-        generateValues()
-        generateData()
+//        generateValues()
+//        generateData()
         setObservers()
 //        viewModel.initVisualization()
 
         // Disable viewport recalculations, see toggleCubic() method for more info.
-        chart!!.isViewportCalculationEnabled = false
-        resetViewport()
+//        resetViewport()
+//        chart!!.isViewportCalculationEnabled = true
         return rootView
     }
 
     private fun setObservers() {
         viewModel.chartData.observe(this, androidx.lifecycle.Observer {
+
             chart?.lineChartData = it
             no_data_view.visibility = View.GONE
             chart?.visibility = View.VISIBLE
+//            showSnackBar("Chartdata received in fragment",true)
+
         })
 
     }
@@ -417,6 +420,26 @@ class RatesVisualizationFragment : Fragment() {
         override fun onValueDeselected() { // TODO Auto-generated method stub
         }
     }
+
+//    private fun showSnackBar(message: String, static: Boolean) {
+//        var snackBarLength = Snackbar.LENGTH_SHORT
+//        if (static) snackBarLength = Snackbar.LENGTH_INDEFINITE
+//
+//        val mySnackBar = Snackbar.make(
+//            rates_chart,
+//            message, snackBarLength
+//        )
+//
+//
+//        mySnackBar.setActionTextColor(ContextCompat.getColor(context!!, R.color.colorAccent))
+//
+//        mySnackBar.setAction("OK") {
+//            mySnackBar.dismiss()
+//            viewModel.refresh()
+//        }
+//
+//        if (!mySnackBar.isShown) mySnackBar.show()
+//    }
 
 
 }
