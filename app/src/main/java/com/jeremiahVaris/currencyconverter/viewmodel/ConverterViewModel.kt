@@ -431,7 +431,9 @@ class ConverterViewModel @Inject constructor(
         conversionCurrency: String,
         offset: Int
     ): PointValue {
-        val rates = _rates.value!![getRelativeDate(_dateOfRatesInUse.value!!, offset)]
+        val relativeDate = getRelativeDate(_dateOfRatesInUse.value!!, offset)
+        val formattedRelativeDate = formatDateForPointLabel(relativeDate)
+        val rates = _rates.value!![relativeDate]
 
         val baseCurrencyValue =
             rates!!.rates!![baseCurrency]!!.toDouble()
@@ -442,8 +444,14 @@ class ConverterViewModel @Inject constructor(
             convertedCurrencyValue / baseCurrencyValue
 
         return PointValue(offset.toFloat(), relativeValue.toFloat()).apply {
-            this.setLabel("test")
+            this.setLabel("$formattedRelativeDate \n\ntest")
         }
+    }
+
+    private fun formatDateForPointLabel(relativeDate: String): String {
+        val cal = Calendar.getInstance()
+        cal.time = SimpleDateFormat("yyyy-MM-dd").parse(relativeDate)
+        return SimpleDateFormat("dd MMM").format(Date(cal.timeInMillis))
     }
 
     private fun hasAllRatesInRange(rangeInDays: Int): Boolean {
