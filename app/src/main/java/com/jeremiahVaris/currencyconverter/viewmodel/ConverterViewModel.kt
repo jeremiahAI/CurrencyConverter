@@ -59,12 +59,18 @@ class ConverterViewModel @Inject constructor(
         get() = _currencyList
     val rates: LiveData<TreeMap<String, Rates>>
         get() = _rates
-    val firstEtValue: LiveData<Double>
-        get() = _firstEtAmount
-    val secondEtValue: LiveData<Double>
-        get() = _secondEtAmount
-    val secondEtHint: LiveData<Double>
-        get() = _secondEtAmountHint
+    val firstEtValue: LiveData<String>
+        get() = Transformations.map(_firstEtAmount) { value ->
+            formatAmount(value)
+        }
+    val secondEtValue: LiveData<String>
+        get() = Transformations.map(_secondEtAmount) { value ->
+            formatAmount(value)
+        }
+    val secondEtHint: LiveData<String>
+        get() = Transformations.map(_secondEtAmountHint) { value ->
+            formatAmount(value)
+        }
     val firstCurrencyFullName
         get() = _currencyList.value?.currencyList?.get(_firstCurrency.value) ?: ""
 
@@ -447,6 +453,33 @@ class ConverterViewModel @Inject constructor(
             this.setLabel("$formattedRelativeDate \n\ntest")
         }
     }
+
+    private fun formatAmount(value: Double): String {
+        val decimalPart: String = when {
+            value.toString().contains("E-") -> { // When value is represented in exponent form
+                convertExponentToDecimalPartRepresentation(value)
+            }
+            else -> value.toString().substringAfter(".", "")
+        }
+
+
+        var nonZeroDecimalIndex = 0
+        for (char in decimalPart.iterator()) {
+            if (char == '0') nonZeroDecimalIndex++
+            else break
+        }
+
+        val stringFormat =
+            when {
+                value >= 1 -> "%.2f" // If value isn't purely decimal, round to two decimal places
+                nonZeroDecimalIndex == 2 -> "%." + "4" + "f"
+                nonZeroDecimalIndex < 2 -> "%." + "3" + "f"
+                else -> "%." + (nonZeroDecimalIndex + 2) + "f"
+            }
+
+        return String.format(stringFormat, value)
+    }
+
 
     private fun formatDateForPointLabel(relativeDate: String): String {
         val cal = Calendar.getInstance()

@@ -99,19 +99,19 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
         viewModel.firstEtValue.observe(this, Observer { value ->
             removeTextWatchers()
-            from_currency_ET.setText(formatAmount(value))
+            from_currency_ET.setText(value)
             setTextWatchers()
         })
 
         viewModel.secondEtValue.observe(this, Observer { value ->
             removeTextWatchers()
-            to_currency_ET.setText(formatAmount(value))
+            to_currency_ET.setText(value)
             setTextWatchers()
         })
 
         viewModel.secondEtHint.observe(this, Observer { value ->
-            to_currency_ET.hint = formatAmount(value)
-            updateConversionRate(formatAmount(value))
+            to_currency_ET.hint = value
+            updateConversionRate(value)
         })
 
         viewModel.isRefreshing.observe(this, Observer {
@@ -164,42 +164,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             }
         }
 
-    }
-
-    private fun formatAmount(value: Double): String {
-        val decimalPart: String = when {
-            value.toString().contains("E-") -> { // When value is represented in exponent form
-                convertExponentToDecimalPartRepresentation(value)
-            }
-            else -> value.toString().substringAfter(".", "")
-        }
-
-
-        var nonZeroDecimalIndex = 0
-        for (char in decimalPart.iterator()) {
-            if (char == '0') nonZeroDecimalIndex++
-            else break
-        }
-
-        val stringFormat =
-            when {
-                value >= 1 -> "%.2f" // If value isn't purely decimal, round to two decimal places
-                nonZeroDecimalIndex == 2 -> "%." + "4" + "f"
-                nonZeroDecimalIndex < 2 -> "%." + "3" + "f"
-                else -> "%." + (nonZeroDecimalIndex + 2) + "f"
-            }
-
-        return String.format(stringFormat, value)
-    }
-
-    private fun convertExponentToDecimalPartRepresentation(value: Double): String {
-        val exponentString = value.toString()[value.toString().length - 1]
-        val exponent = Character.getNumericValue(exponentString)
-        var result = ""
-        repeat(exponent - 1) {
-            result += "0"
-        }
-        return result + value.toString().replace(".", "").replace("""E-\d""".toRegex(), "")
     }
 
     private fun setListeners() {
