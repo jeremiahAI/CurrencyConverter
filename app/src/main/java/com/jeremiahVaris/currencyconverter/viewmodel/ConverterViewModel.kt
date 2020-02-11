@@ -450,7 +450,10 @@ class ConverterViewModel @Inject constructor(
             convertedCurrencyValue / baseCurrencyValue
 
         return PointValue(offset.toFloat(), relativeValue.toFloat()).apply {
-            this.setLabel("$formattedRelativeDate \n\ntest")
+            this.setLabel(
+                formattedRelativeDate +
+                        "\n\n1 $baseCurrency = ${formatAmount(relativeValue)} $conversionCurrency"
+            )
         }
     }
 
