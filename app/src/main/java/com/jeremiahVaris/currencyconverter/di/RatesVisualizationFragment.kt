@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.view.*
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.jeremiahVaris.currencyconverter.R
@@ -75,12 +76,13 @@ class RatesVisualizationFragment : Fragment() {
     }
 
     private fun setObservers() {
-        viewModel.chartData.observe(this, androidx.lifecycle.Observer {
+        viewModel.chartData.observe(this, androidx.lifecycle.Observer { data ->
+            data.valueLabelBackgroundColor = ContextCompat.getColor(context!!, R.color.colorAccent)
+            data.isValueLabelBackgroundAuto = false
 
-            chart?.lineChartData = it
+            chart?.lineChartData = data
             no_data_view.visibility = View.GONE
             chart?.visibility = View.VISIBLE
-//            showSnackBar("Chartdata received in fragment",true)
 
         })
 
