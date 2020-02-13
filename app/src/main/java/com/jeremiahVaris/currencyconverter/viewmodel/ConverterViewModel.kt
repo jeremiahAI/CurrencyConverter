@@ -2,7 +2,10 @@ package com.jeremiahVaris.currencyconverter.viewmodel
 
 import android.graphics.Color
 import android.os.Build
+import android.text.SpannableStringBuilder
 import android.util.Log
+import androidx.core.text.bold
+import androidx.core.text.scale
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
@@ -450,10 +453,10 @@ class ConverterViewModel @Inject constructor(
             convertedCurrencyValue / baseCurrencyValue
 
         return PointValue(offset.toFloat(), relativeValue.toFloat()).apply {
-            this.setLabel(
-                formattedRelativeDate +
-                        "\n\n1 $baseCurrency = ${formatAmount(relativeValue)} $conversionCurrency"
-            )
+            val span = SpannableStringBuilder()
+                .scale(1.3f) { bold { append(formattedRelativeDate) } }
+                .append("\n\n1 $baseCurrency = ${formatAmount(relativeValue)} $conversionCurrency")
+            this.label = span
         }
     }
 
