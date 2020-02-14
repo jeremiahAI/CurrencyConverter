@@ -79,6 +79,7 @@ class RatesVisualizationFragment : Fragment() {
         viewModel.chartData.observe(this, androidx.lifecycle.Observer { data ->
             data.valueLabelBackgroundColor = ContextCompat.getColor(context!!, R.color.colorAccent)
             data.isValueLabelBackgroundAuto = false
+            data.valueLabelBackgroundRadius = 8
 
             chart?.lineChartData = data
             no_data_view.visibility = View.GONE
