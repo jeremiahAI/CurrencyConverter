@@ -4,34 +4,79 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingStart="32dp"
-        android:paddingLeft="32dp"
-        android:paddingEnd="32dp"
-        android:paddingRight="32dp"
+        android:paddingStart="16dp"
+        android:paddingTop="32dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="40dp"
         tools:background="@drawable/rates_display_background"
         tools:context=".di.RatesVisualizationFragment">
+
+
+    <TextView
+            android:id="@+id/fiveDaysTv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableBottom="@drawable/round_shape_green"
+            android:text="@string/_5_days"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/thirtyDaysTv"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+    <TextView
+            android:id="@+id/thirtyDaysTv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/_30_days"
+            android:textColor="@color/dim_white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/ninetyDaysTv"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/fiveDaysTv"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+            android:id="@+id/ninetyDaysTv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/_90_days"
+            android:textColor="@color/dim_white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/thirtyDaysTv"
+            app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
             android:id="@+id/no_data_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="No data available"
+            android:text="@string/no_chart_data_available"
             android:textColor="#FFF"
             android:textSize="20sp"
+            app:layout_constraintTop_toBottomOf="@+id/fiveDaysTv"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            tools:visibility="gone" />
 
 
     <lecho.lib.hellocharts.view.LineChartView
             android:id="@+id/rates_chart"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="0dp"
             android:layout_marginTop="32dp"
             android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/fiveDaysTv"
+            tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

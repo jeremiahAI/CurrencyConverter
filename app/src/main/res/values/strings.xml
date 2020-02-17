@@ -8,4 +8,8 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="_5_days">5 days</string>
+    <string name="_30_days">30 days</string>
+    <string name="_90_days">90 days</string>
+    <string name="no_chart_data_available">No chart data available</string>
 </resources>

@@ -23,7 +23,7 @@ import java.util.*
 import javax.inject.Inject
 
 
-class RatesVisualizationFragment : Fragment() {
+class RatesVisualizationFragment : Fragment(), View.OnClickListener {
 
     private var chart: LineChartView? = null
     private var data: LineChartData? = null
@@ -67,12 +67,19 @@ class RatesVisualizationFragment : Fragment() {
 //        generateValues()
 //        generateData()
         setObservers()
+        setOnclickListeners(rootView)
 //        viewModel.initVisualization()
 
         // Disable viewport recalculations, see toggleCubic() method for more info.
 //        resetViewport()
 //        chart!!.isViewportCalculationEnabled = true
         return rootView
+    }
+
+    private fun setOnclickListeners(rootView: View) {
+        rootView.fiveDaysTv.setOnClickListener(this)
+        rootView.thirtyDaysTv.setOnClickListener(this)
+        rootView.ninetyDaysTv.setOnClickListener(this)
     }
 
     private fun setObservers() {
@@ -422,6 +429,54 @@ class RatesVisualizationFragment : Fragment() {
 
         override fun onValueDeselected() { // TODO Auto-generated method stub
         }
+    }
+
+    override fun onClick(p0: View?) {
+        when (p0?.id) {
+            fiveDaysTv.id -> {
+                clearBackgroundDrawableOnRangeSelectors()
+                viewModel.rangeOfRatesForVisualization = 5
+                fiveDaysTv.setCompoundDrawablesWithIntrinsicBounds(
+                    0,
+                    0,
+                    0,
+                    R.drawable.round_shape_green
+                )
+                fiveDaysTv.setTextColor(resources.getColor(R.color.white))
+            }
+            thirtyDaysTv.id -> {
+                clearBackgroundDrawableOnRangeSelectors()
+                viewModel.rangeOfRatesForVisualization = 10
+                thirtyDaysTv.setCompoundDrawablesWithIntrinsicBounds(
+                    0,
+                    0,
+                    0,
+                    R.drawable.round_shape_green
+                )
+                thirtyDaysTv.setTextColor(resources.getColor(R.color.white))
+            }
+            ninetyDaysTv.id -> {
+                clearBackgroundDrawableOnRangeSelectors()
+                viewModel.rangeOfRatesForVisualization = 90
+                ninetyDaysTv.setCompoundDrawablesWithIntrinsicBounds(
+                    0,
+                    0,
+                    0,
+                    R.drawable.round_shape_green
+                )
+                ninetyDaysTv.setTextColor(resources.getColor(R.color.white))
+            }
+        }
+    }
+
+    private fun clearBackgroundDrawableOnRangeSelectors() {
+        fiveDaysTv.setCompoundDrawables(null, null, null, null)
+        thirtyDaysTv.setCompoundDrawables(null, null, null, null)
+        ninetyDaysTv.setCompoundDrawables(null, null, null, null)
+
+        fiveDaysTv.setTextColor(resources.getColor(R.color.dim_white))
+        thirtyDaysTv.setTextColor(resources.getColor(R.color.dim_white))
+        ninetyDaysTv.setTextColor(resources.getColor(R.color.dim_white))
     }
 
 //    private fun showSnackBar(message: String, static: Boolean) {
